@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Providers;
+
+use Carbon\Carbon;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        if (! defined('WKB_DONT_NORMALIZE_EWKB')) {
+            // Informatif; PostWKB handler diset via GeometryCast, tidak dipakai di sini.
+        }
+    }
+
+    public function boot(): void
+    {
+        $this->configureRateLimiting();
+        Carbon::setLocale(config('app.locale', 'id'));
+    }
+
+    /**
+     * Membuat rate limiter untuk endpoint presensi agar tidak dibom beban ganda.
+     */
+    protected function configureRateLimiting(): void
+    {
+        $limit = (int) config('attendance.rate_limit_per_minute', 30);
+
+        RateLimiter::for('attendance', function ($request) use ($limit) {
+            $key = $request->user()
+                ? 'attendance:'.$request->user()->getAuthIdentifier()
+                : 'attendance:'.$request->ip();
+
+            return Limit::perMinute($limit)->by($key);
+        });
+    }
+}
