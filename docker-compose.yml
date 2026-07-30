@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: presensi-db
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-presensi}
+      POSTGRES_USER: ${DB_USERNAME:-presensi}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-presensi}
+      TZ: Asia/Jakarta
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-presensi} -d ${DB_DATABASE:-presensi}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: presensi-app
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
+    environment:
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE:-presensi}
+      DB_USERNAME: ${DB_USERNAME:-presensi}
+      DB_PASSWORD: ${DB_PASSWORD:-presensi}
+      TZ: Asia/Jakarta
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    image: nginx:alpine
+    container_name: presensi-web
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  node:
+    image: node:20-alpine
+    container_name: presensi-node
+    working_dir: /var/www/html
+    profiles: ["assets"]
+    volumes:
+      - .:/var/www/html
+    command: sh -lc "npm install && npm run build"
+    restart: "no"
+
+volumes:
+  dbdata:
