@@ -31,6 +31,9 @@
 !public/icons/.gitkeep
 !resources/icons/*.svg
 
+# Storage symlink
+/public/storage
+
 # Docker local overrides
 docker-compose.override.yml
 
