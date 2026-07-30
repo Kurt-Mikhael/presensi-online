@@ -1,0 +1,40 @@
+/.idea
+/.vscode
+/.fleet
+
+# Environment
+/.env
+/.env.local
+/.env.*.local
+
+# Laravel
+/vendor
+/node_modules
+/public/build
+/public/hot
+/storage/*.key
+/storage/app/*
+!storage/app/.gitkeep
+/storage/framework/cache/data/*
+!storage/framework/cache/data/.gitkeep
+/storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!storage/framework/views/.gitkeep
+/storage/logs/*
+!storage/logs/.gitkeep
+/bootstrap/cache/*.php
+!bootstrap/cache/.gitkeep
+
+# Generated icons
+/public/icons/*
+!public/icons/.gitkeep
+!resources/icons/*.svg
+
+# Docker local overrides
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
