@@ -137,7 +137,7 @@ window.presensiPage = function presensiPage(initial) {
                 .addTo(this.miniMap);
 
             this.areaLayers = L.featureGroup().addTo(this.miniMap);
-            const style = { color: '#166534', weight: 2, fillColor: '#166534', fillOpacity: 0.08 };
+            const style = { color: '#1e4fa8', weight: 2, fillColor: '#1e4fa8', fillOpacity: 0.08 };
             const latLngs = [];
 
             this.areas.forEach((a) => {
@@ -170,10 +170,10 @@ window.presensiPage = function presensiPage(initial) {
 
             if (!this.userMarker) {
                 this.userMarker = L.circleMarker([lat, lng], {
-                    radius: 7, color: '#ffffff', weight: 2.5, fillColor: '#166534', fillOpacity: 1,
+                    radius: 7, color: '#ffffff', weight: 2.5, fillColor: '#1e4fa8', fillOpacity: 1,
                 }).addTo(this.miniMap);
                 this.accCircle = L.circle([lat, lng], {
-                    radius: accuracy, color: '#166534', weight: 1, dashArray: '3 3', fillOpacity: 0.08,
+                    radius: accuracy, color: '#1e4fa8', weight: 1, dashArray: '3 3', fillOpacity: 0.08,
                 }).addTo(this.miniMap);
 
                 this.miniMap.setView([lat, lng], 15);
@@ -265,11 +265,11 @@ window.presensiPage = function presensiPage(initial) {
         },
 
         get checkInButtonLabel() {
-            if (this.record.has_check_in) return 'Sudah Presensi';
-            if (this.loc.phase === 'inside') return 'Presensi Masuk';
+            if (this.record.has_check_in) return 'Sudah Check In';
+            if (this.loc.phase === 'inside') return 'Check In';
             if (this.loc.phase === 'outside') return 'Di Luar Area Presensi';
             if (this.loc.phase === 'no_area') return 'Area Belum Tersedia';
-            return 'Menunggu Lokasi…';
+            return 'Check In';
         },
 
         // ---------- Aksi presensi ----------

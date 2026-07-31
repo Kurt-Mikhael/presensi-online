@@ -23,7 +23,7 @@
         </div>
         <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500">
             <span x-show="!connection.checked" class="text-slate-400">Memeriksa…</span>
-            <span x-show="connection.checked && connection.online" class="inline-flex items-center gap-1.5 text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Sistem online</span>
+            <span x-show="connection.checked && connection.online" class="inline-flex items-center gap-1.5 text-blue-700"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Sistem online</span>
             <span x-show="connection.checked && connection.online === false" class="inline-flex items-center gap-1.5 text-red-700"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Sistem offline</span>
         </div>
     </header>
@@ -51,7 +51,7 @@
                         Status Area
                     </div>
                     <div class="mt-1 text-sm font-semibold"
-                         :class="loc.phase === 'inside' ? 'text-emerald-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-400')">
+                         :class="loc.phase === 'inside' ? 'text-blue-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-400')">
                         <template x-if="loc.phase === 'inside'"><span x-text="'Dalam Area · ' + loc.areaName"></span></template>
                         <template x-if="loc.phase === 'outside'"><span>Di Luar Area Presensi</span></template>
                         <template x-if="loc.phase === 'no_area'"><span>Belum Ada Area Aktif</span></template>
@@ -72,7 +72,7 @@
             </div>
             <div class="border-t border-slate-100 px-4 py-3 text-xs">
                 <div class="font-semibold text-slate-700">Lokasi Anda</div>
-                <div class="mt-0.5" :class="loc.phase === 'inside' ? 'text-emerald-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-500')">
+                <div class="mt-0.5" :class="loc.phase === 'inside' ? 'text-blue-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-500')">
                     <span x-text="locMessage">Menentukan lokasi…</span>
                 </div>
                 <template x-if="loc.phase === 'inside'">
@@ -96,16 +96,16 @@
                 {{-- Masuk --}}
                 <section class="rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-start justify-between gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700">
+                <span class="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M9 12l3-3m0 0 3 3m-3-3v12"/></svg>
                 </span>
                 <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold"
-                      :class="record.has_check_in ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'">
-                    <span class="h-1.5 w-1.5 rounded-full" :class="record.has_check_in ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                      :class="record.has_check_in ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'">
+                    <span class="h-1.5 w-1.5 rounded-full" :class="record.has_check_in ? 'bg-blue-500' : 'bg-slate-400'"></span>
                     <span x-text="record.has_check_in ? 'BERHASIL' : 'BELUM PRESENSI'">BELUM PRESENSI</span>
                 </span>
             </div>
-            <h2 class="mt-4 text-base font-semibold text-slate-900">Masuk Kerja</h2>
+            <h2 class="mt-4 text-base font-semibold text-slate-900">Check In</h2>
 
             <div class="mt-2 flex items-center gap-2 text-sm">
                 <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
@@ -117,7 +117,7 @@
             <template x-if="!record.has_check_in">
                 <div>
                     <p class="mt-3 text-sm"
-                       :class="loc.phase === 'inside' ? 'text-emerald-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-500')"
+                       :class="loc.phase === 'inside' ? 'text-blue-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-500')"
                        x-text="locMessage"></p>
 
                     <button type="button" @click="doCheckIn()" :disabled="!canCheckIn"
@@ -126,17 +126,17 @@
                                 : 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800'"
                             class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold tracking-tight transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/30">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        <span x-text="checkInButtonLabel">Menunggu Lokasi…</span>
+                        <span x-text="checkInButtonLabel">Check In</span>
                     </button>
                 </div>
             </template>
 
             {{-- Sudah presensi: ringkasan sukses, tanpa tombol --}}
             <template x-if="record.has_check_in">
-                <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3.5">
-                    <div class="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                <div class="mt-4 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3.5">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-blue-800">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        Presensi berhasil
+                        Check In berhasil
                     </div>
                     <div class="mt-2 font-mono text-2xl font-semibold tabular-nums text-slate-900">
                         <span x-text="fmtClock(record.check_in_at)"></span> <span class="text-sm font-normal text-slate-500">WIB</span>
@@ -149,6 +149,7 @@
                             <div>Akurasi lokasi ±<span class="font-mono" x-text="Math.round(record.check_in_accuracy)"></span> m</div>
                         </template>
                     </div>
+                    <div class="mt-2.5 text-xs italic text-blue-700">Semangat untuk kerja hari ini ya!</div>
                 </div>
             </template>
                 </section>
@@ -157,17 +158,17 @@
                 <section class="rounded-2xl border border-slate-200 bg-white p-5 transition"
                  :class="!record.has_check_in ? 'opacity-60' : ''">
             <div class="flex items-start justify-between gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-600">
+                <span class="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M9 12l3-3m0 0 3 3m-3-3V3"/></svg>
                 </span>
                 <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold"
-                      :class="record.has_check_out ? 'bg-emerald-50 text-emerald-700' : (record.has_check_in ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-500')">
+                      :class="record.has_check_out ? 'bg-blue-50 text-blue-700' : (record.has_check_in ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-500')">
                     <span class="h-1.5 w-1.5 rounded-full"
-                          :class="record.has_check_out ? 'bg-emerald-500' : (record.has_check_in ? 'bg-brand-600' : 'bg-slate-400')"></span>
+                          :class="record.has_check_out ? 'bg-blue-500' : (record.has_check_in ? 'bg-brand-600' : 'bg-slate-400')"></span>
                     <span x-text="record.has_check_out ? 'SELESAI' : (record.has_check_in ? 'TERSEDIA' : 'TERKUNCI')">TERKUNCI</span>
                 </span>
             </div>
-            <h2 class="mt-4 text-base font-semibold text-slate-900">Pulang Kerja</h2>
+            <h2 class="mt-4 text-base font-semibold text-slate-900">Check Out</h2>
 
             <div class="mt-2 flex items-center gap-2 text-sm">
                 <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
@@ -191,7 +192,7 @@
             <template x-if="record.has_check_in && !record.has_check_out">
                 <div>
                     <p class="mt-3 text-sm"
-                       :class="loc.phase === 'inside' ? 'text-emerald-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-500')"
+                       :class="loc.phase === 'inside' ? 'text-blue-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-500')"
                        x-text="locMessage"></p>
                     <button type="button" @click="doCheckOut()" :disabled="!canCheckOut"
                             :class="!canCheckOut
@@ -199,17 +200,17 @@
                                 : 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800'"
                             class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold tracking-tight transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/30">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        <span x-text="loc.phase === 'inside' ? 'Presensi Pulang' : (loc.phase === 'outside' ? 'Di Luar Area Presensi' : 'Menunggu Lokasi…')">Presensi Pulang</span>
+                        <span x-text="loc.phase === 'inside' ? 'Check Out' : (loc.phase === 'outside' ? 'Di Luar Area Presensi' : 'Check Out')">Check Out</span>
                     </button>
                 </div>
             </template>
 
             {{-- Selesai: sudah pulang --}}
             <template x-if="record.has_check_out">
-                <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3.5">
-                    <div class="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                <div class="mt-4 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3.5">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-blue-800">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        Presensi pulang berhasil
+                        Check Out berhasil
                     </div>
                     <div class="mt-2 font-mono text-2xl font-semibold tabular-nums text-slate-900">
                         <span x-text="fmtClock(record.check_out_at)"></span> <span class="text-sm font-normal text-slate-500">WIB</span>
@@ -222,6 +223,7 @@
                             <div>Akurasi lokasi ±<span class="font-mono" x-text="Math.round(record.check_out_accuracy)"></span> m</div>
                         </template>
                     </div>
+                    <div class="mt-2.5 text-xs italic text-blue-700">Terima kasih sudah bekerja hari ini, sampai jumpa besok!</div>
                 </div>
             </template>
                 </section>
@@ -230,7 +232,7 @@
                 {{-- Foto Presensi --}}
                 <section class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-start justify-between gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-700">
+                <span class="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5h3l1.5-2.25h7.5L17.25 7.5h3A2.25 2.25 0 0 1 22.5 9.75v7.5A2.25 2.25 0 0 1 20.25 19.5H3.75A2.25 2.25 0 0 1 1.5 17.25v-7.5A2.25 2.25 0 0 1 3.75 7.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
                 </span>
                 <span class="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">
@@ -280,7 +282,7 @@
         class="rounded-2xl border bg-white p-4"
         :class="{
             'border-amber-200 bg-amber-50/40': busy && status.phase !== 'done',
-            'border-emerald-200 bg-emerald-50/40': status.phase === 'done',
+            'border-blue-200 bg-blue-50/40': status.phase === 'done',
             'border-red-200 bg-red-50/40': status.phase === 'error',
         }"
     >
@@ -288,7 +290,7 @@
             <span class="grid h-9 w-9 flex-none place-items-center rounded-lg"
                   :class="{
                       'bg-amber-100 text-amber-700': busy && status.phase !== 'done',
-                      'bg-emerald-100 text-emerald-700': status.phase === 'done',
+                      'bg-blue-100 text-blue-700': status.phase === 'done',
                       'bg-red-100 text-red-700': status.phase === 'error',
                   }">
                 <template x-if="busy || (status.phase !== 'done' && status.phase !== 'error')">
@@ -305,7 +307,7 @@
                 <div class="text-sm font-medium"
                      :class="{
                          'text-amber-800': busy && status.phase !== 'done',
-                         'text-emerald-800': status.phase === 'done',
+                         'text-blue-800': status.phase === 'done',
                          'text-red-800': status.phase === 'error',
                      }"
                      x-text="status.message || 'Siap'"></div>
@@ -315,7 +317,7 @@
             </div>
             <div class="text-xs text-slate-500">
                 <span x-show="!connection.checked">Memeriksa…</span>
-                <span x-show="connection.checked && connection.online" class="text-emerald-600">● Online</span>
+                <span x-show="connection.checked && connection.online" class="text-blue-600">● Online</span>
                 <span x-show="connection.checked && connection.online === false" class="text-red-600">● Offline</span>
             </div>
         </div>
@@ -347,7 +349,7 @@
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-900">{{ $r->check_out_at?->setTimezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5">
                                 @if($r->check_in_at && $r->check_out_at)
-                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Tepat Waktu</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Tepat Waktu</span>
                                 @elseif($r->check_in_at)
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Belum Pulang</span>
                                 @else
@@ -370,7 +372,7 @@
                     <div class="flex items-center justify-between gap-2">
                         <div class="text-sm font-semibold text-slate-800">{{ $r->attendance_date?->translatedFormat('l, j M Y') }}</div>
                         @if($r->check_in_at && $r->check_out_at)
-                            <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Tepat Waktu</span>
+                            <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Tepat Waktu</span>
                         @elseif($r->check_in_at)
                             <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Belum Pulang</span>
                         @else
