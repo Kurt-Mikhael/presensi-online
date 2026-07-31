@@ -9,9 +9,9 @@
         <div class="absolute inset-0 overflow-hidden">
             <img src="{{ asset('proyek.webp') }}" alt="" aria-hidden="true"
                  class="absolute inset-0 h-full w-full object-cover">
-            {{-- Green fade overlay across the entire image --}}
-            <div class="absolute inset-0" style="background: rgba(22, 101, 52, 0.55);"></div>
-            <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(22, 101, 52, 0.30) 0%, rgba(22, 101, 52, 0.70) 100%);"></div>
+            {{-- Blue fade overlay across the entire image --}}
+            <div class="absolute inset-0" style="background: rgba(30, 79, 168, 0.55);"></div>
+            <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(30, 79, 168, 0.30) 0%, rgba(18, 43, 89, 0.75) 100%);"></div>
         </div>
 
         <div class="relative z-10 flex h-full flex-col justify-between py-16 pl-16 pr-12">

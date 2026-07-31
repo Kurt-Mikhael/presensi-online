@@ -69,7 +69,7 @@
             <div class="px-1 pt-2">
                 <div class="sidebar-footer-card rounded-2xl px-4 py-3 text-white/75">
                     <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/60">
-                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                        <span class="h-2 w-2 rounded-full bg-blue-400"></span>
                         Sistem aktif
                     </div>
                 </div>
@@ -88,7 +88,7 @@
         <div class="absolute inset-x-4 bottom-20 hidden rounded-2xl border border-white/10 bg-white/6 px-4 py-3 backdrop-blur lg:block">
             <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Status Sistem</div>
             <div class="mt-1 flex items-center gap-1.5 text-xs text-white/70">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
                 Server Operasional
             </div>
         </div>

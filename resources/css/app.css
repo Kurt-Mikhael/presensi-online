@@ -21,8 +21,8 @@
         --color-line: #e2e8f0;
         --color-surface: #ffffff;
         --color-surface-muted: #f8fafc;
-        --color-accent: #166534;
-        --color-accent-soft: #f0f7f1;
+        --color-accent: #1e4fa8;
+        --color-accent-soft: #eef4fc;
     }
 
     html {
@@ -56,7 +56,7 @@
 @layer components {
     .sidebar-shell {
         background:
-            radial-gradient(circle at top right, rgba(56, 189, 130, 0.18), transparent 32%),
+            radial-gradient(circle at top right, rgba(79, 128, 214, 0.22), transparent 32%),
             radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.05), transparent 26%),
             linear-gradient(180deg, #0f172a 0%, #13263a 46%, #0f172a 100%);
         color: #fff;
@@ -76,8 +76,8 @@
 
     .sidebar-brand-chip {
         border-radius: 1rem;
-        background: linear-gradient(135deg, #166534 0%, #2f855a 52%, #0f7a47 100%);
-        box-shadow: 0 16px 30px -18px rgba(22, 101, 52, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+        background: linear-gradient(135deg, #1e4fa8 0%, #2f62c4 52%, #16356f 100%);
+        box-shadow: 0 16px 30px -18px rgba(30, 79, 168, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.22);
     }
 
     .sidebar-nav-item {

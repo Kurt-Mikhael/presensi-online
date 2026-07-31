@@ -36,7 +36,7 @@
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-900">{{ $r->check_out_at?->setTimezone(config('app.timezone'))->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5">
                                 @if($r->check_in_at && $r->check_out_at)
-                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Tepat Waktu</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Tepat Waktu</span>
                                 @elseif($r->check_in_at)
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Belum Pulang</span>
                                 @else
@@ -58,7 +58,7 @@
                     <div class="flex items-center justify-between gap-2">
                         <div class="text-sm font-semibold text-slate-800">{{ $r->attendance_date?->translatedFormat('l, j M Y') }}</div>
                         @if($r->check_in_at && $r->check_out_at)
-                            <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Tepat Waktu</span>
+                            <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Tepat Waktu</span>
                         @elseif($r->check_in_at)
                             <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Belum Pulang</span>
                         @else

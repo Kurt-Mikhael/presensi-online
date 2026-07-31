@@ -21,7 +21,7 @@
     <template x-if="message.text">
         <div x-transition.opacity
              class="rounded-xl border px-4 py-3 text-sm"
-             :class="message.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-red-200 bg-red-50 text-red-800'">
+             :class="message.type === 'success' ? 'border-blue-200 bg-blue-50 text-blue-800' : 'border-red-200 bg-red-50 text-red-800'">
             <span x-text="message.text"></span>
         </div>
     </template>
@@ -144,7 +144,7 @@
                             <div class="min-w-0">
                                 <div class="truncate text-sm font-semibold text-slate-800">
                                     <span x-text="a.name"></span>
-                                    <span x-show="a.is_active" class="ml-1 inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">Aktif</span>
+                                    <span x-show="a.is_active" class="ml-1 inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">Aktif</span>
                                 </div>
                                 <div class="text-xs text-slate-500">
                                     <span x-text="a.area_type === 'circle' ? 'Lingkaran' : 'Polygon'"></span>

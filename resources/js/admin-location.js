@@ -4,9 +4,9 @@ import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 
 window.adminLocationPage = function adminLocationPage(initial) {
-    const STYLE_REF = { color: '#166534', weight: 2, fillColor: '#166534', fillOpacity: 0.08, dashArray: null };
-    const STYLE_ACTIVE = { color: '#166534', weight: 2.5, fillColor: '#166534', fillOpacity: 0.12, dashArray: null };
-    const STYLE_SELECTED = { color: '#166534', weight: 3.5, fillColor: '#166534', fillOpacity: 0.22, dashArray: null };
+    const STYLE_REF = { color: '#1e4fa8', weight: 2, fillColor: '#1e4fa8', fillOpacity: 0.08, dashArray: null };
+    const STYLE_ACTIVE = { color: '#1e4fa8', weight: 2.5, fillColor: '#1e4fa8', fillOpacity: 0.12, dashArray: null };
+    const STYLE_SELECTED = { color: '#1e4fa8', weight: 3.5, fillColor: '#1e4fa8', fillOpacity: 0.22, dashArray: null };
 
     return {
         map: null,
