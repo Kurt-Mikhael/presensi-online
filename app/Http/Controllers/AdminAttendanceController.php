@@ -42,38 +42,12 @@ class AdminAttendanceController extends Controller
     {
         $filters = $this->filters($request, false);
         $records = $this->query($filters)->get();
-        $filename = 'laporan-presensi-'.now()->format('Y-m-d-His').'.xls';
+        $filename = 'laporan-presensi-'.now()->format('Y-m-d-His').'.xlsx';
+        $path = $this->createXlsx($records);
 
-        return response()->streamDownload(function () use ($records) {
-            echo "\xEF\xBB\xBF";
-            echo '<table border="1"><thead><tr>';
-            foreach (['Tanggal', 'No. Pegawai', 'Nama Pegawai', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Lembur', 'Status'] as $heading) {
-                echo '<th>'.e($heading).'</th>';
-            }
-            echo '</tr></thead><tbody>';
-
-            foreach ($records as $record) {
-                $status = $record->check_in_at && $record->check_out_at
-                    ? 'Lengkap'
-                    : ($record->check_in_at ? 'Sudah Masuk' : 'Belum Presensi');
-                $values = [
-                    $record->attendance_date?->format('Y-m-d'),
-                    $record->user?->employee_number,
-                    $record->user?->name,
-                    $record->check_in_at?->setTimezone(config('app.timezone'))?->format('H:i'),
-                    $record->check_out_at?->setTimezone(config('app.timezone'))?->format('H:i'),
-                    $record->work_duration ?? '-',
-                    $record->overtime_duration ?? '-',
-                    $status,
-                ];
-
-                echo '<tr>'.collect($values)->map(fn ($value) => '<td>'.e($value ?? '-').'</td>')->implode('').'</tr>';
-            }
-
-            echo '</tbody></table>';
-        }, $filename, [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
-        ]);
+        return response()->download($path, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 
     /**
@@ -140,5 +114,87 @@ class AdminAttendanceController extends Controller
             'date_to' => $dateTo,
             'q' => $request->input('q'),
         ];
+    }
+
+    protected function createXlsx($records): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'presensi-export-');
+        $zip = new \ZipArchive;
+        $zip->open($path, \ZipArchive::OVERWRITE);
+
+        $zip->addFromString('[Content_Types].xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>
+XML);
+        $zip->addFromString('_rels/.rels', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>
+XML);
+        $zip->addFromString('xl/workbook.xml', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="Laporan Presensi" sheetId="1" r:id="rId1"/></sheets>
+</workbook>
+XML);
+        $zip->addFromString('xl/_rels/workbook.xml.rels', <<<'XML'
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>
+XML);
+
+        $headings = ['Tanggal', 'No. Pegawai', 'Nama Pegawai', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Lembur', 'Status'];
+        $rows = [$headings];
+
+        foreach ($records as $record) {
+            $rows[] = [
+                $record->attendance_date?->format('Y-m-d'),
+                $record->user?->employee_number,
+                $record->user?->name,
+                $record->check_in_at?->setTimezone(config('app.timezone'))?->format('H:i'),
+                $record->check_out_at?->setTimezone(config('app.timezone'))?->format('H:i'),
+                $record->work_duration ?? '-',
+                $record->overtime_duration ?? '-',
+                $record->check_in_at && $record->check_out_at
+                    ? 'Lengkap'
+                    : ($record->check_in_at ? 'Sudah Masuk' : 'Belum Presensi'),
+            ];
+        }
+
+        $sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+        $sheet .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+        foreach ($rows as $rowNumber => $row) {
+            $sheet .= '<row r="'.($rowNumber + 1).'">';
+            foreach ($row as $columnNumber => $value) {
+                $cell = $this->excelColumn($columnNumber + 1).($rowNumber + 1);
+                $value = htmlspecialchars((string) ($value ?? '-'), ENT_XML1 | ENT_QUOTES, 'UTF-8');
+                $sheet .= '<c r="'.$cell.'" t="inlineStr"><is><t>'.$value.'</t></is></c>';
+            }
+            $sheet .= '</row>';
+        }
+        $sheet .= '</sheetData></worksheet>';
+        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
+        $zip->close();
+
+        return $path;
+    }
+
+    protected function excelColumn(int $number): string
+    {
+        $column = '';
+        while ($number > 0) {
+            $remainder = ($number - 1) % 26;
+            $column = chr(65 + $remainder).$column;
+            $number = intdiv($number - 1, 26);
+        }
+
+        return $column;
     }
 }

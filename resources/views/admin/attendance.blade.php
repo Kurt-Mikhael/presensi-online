@@ -17,9 +17,9 @@
     </header>
 
     {{-- Filter --}}
-    <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-        <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
-            <div>
+    <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <form method="get" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,1.35fr)] lg:gap-5">
+            <div class="min-w-0">
                 <label for="date_from" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Dari tanggal</label>
                 <div class="relative mt-1.5">
                     <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
@@ -28,7 +28,7 @@
                     <input id="date_from" type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
                 </div>
             </div>
-            <div>
+            <div class="min-w-0">
                 <label for="date_to" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Sampai tanggal</label>
                 <div class="relative mt-1.5">
                     <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
@@ -37,7 +37,7 @@
                     <input id="date_to" type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
                 </div>
             </div>
-            <div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1">
                 <label for="q" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Cari nama atau nomor pegawai</label>
                 <div class="relative mt-1.5">
                     <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
@@ -46,16 +46,16 @@
                     <input id="q" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Cari nama atau nomor pegawai…" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 sm:w-auto">
+            <div class="flex flex-col gap-2 border-t border-slate-100 pt-4 sm:col-span-2 sm:flex-row sm:justify-end lg:col-span-3">
+                <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 sm:w-auto">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
                     Cari
                 </button>
-                <button type="submit" formaction="{{ route('admin.attendance.export') }}" formtarget="_blank" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 sm:w-auto">
+                <button type="submit" formaction="{{ route('admin.attendance.export') }}" formtarget="_blank" class="btn-export inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm sm:w-auto">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
                     Export Excel
                 </button>
-                <a href="{{ route('admin.attendance.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Reset</a>
+                <a href="{{ route('admin.attendance.index') }}" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto">Reset</a>
             </div>
         </form>
     </section>

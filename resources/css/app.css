@@ -46,6 +46,21 @@
     .btn-ghost {
         @apply rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200;
     }
+
+    .btn-export {
+        background-color: #15803d;
+        color: #fff;
+        transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+
+    .btn-export:hover {
+        background-color: #166534;
+        box-shadow: 0 8px 16px -10px rgba(21, 128, 61, 0.8);
+    }
+
+    .btn-export:active {
+        transform: translateY(1px);
+    }
 }
 
 /* Leaflet overrides: pastikan peta bekerja di container kecil */
