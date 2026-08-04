@@ -25,11 +25,6 @@
 /bootstrap/cache/*.php
 !bootstrap/cache/.gitkeep
 
-# Generated icons
-/public/icons/*
-!public/icons/.gitkeep
-!resources/icons/*.svg
-
 # Storage symlink
 /public/storage
 
