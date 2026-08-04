@@ -1,6 +1,6 @@
 @extends('layouts.app', ['user' => auth()->user()])
 
-@section('title', 'Daftar Presensi')
+@section('title', 'Daftar Absensi')
 
 @section('content')
 @php
@@ -12,8 +12,8 @@
 
 <div class="space-y-5">
     <header class="flex flex-col gap-1">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Daftar Presensi</h1>
-        <p class="text-sm text-slate-500">Pantau catatan presensi seluruh karyawan berdasarkan periode.</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Daftar Absensi</h1>
+        <p class="text-sm text-slate-500">Pantau catatan absensi seluruh karyawan berdasarkan periode.</p>
     </header>
 
     {{-- Filter --}}
@@ -148,7 +148,7 @@
                                 @else
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
                                         <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                        Belum Presensi
+                                        Belum Absensi
                                     </span>
                                 @endif
                             </td>
@@ -168,14 +168,14 @@
                                 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
                                     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                                         @if($r->check_in_photo_url)
-                                            <img src="{{ $r->check_in_photo_url }}" alt="Foto presensi {{ $user?->name ?? 'pegawai' }}" class="h-56 w-full object-cover">
+                                            <img src="{{ $r->check_in_photo_url }}" alt="Foto absensi {{ $user?->name ?? 'pegawai' }}" class="h-56 w-full object-cover">
                                         @else
                                             <div class="grid h-56 place-items-center text-sm text-slate-400">Tidak ada foto tersimpan.</div>
                                         @endif
                                     </div>
                                     <div class="flex items-center">
                                         <div>
-                                            <div class="text-sm font-semibold text-slate-900">Foto presensi {{ $user?->name ?? 'pegawai' }}</div>
+                                            <div class="text-sm font-semibold text-slate-900">Foto absensi {{ $user?->name ?? 'pegawai' }}</div>
                                             <div class="mt-1 text-sm text-slate-500">{{ $r->check_in_photo_taken_at?->setTimezone(config('app.timezone'))?->format('d M Y, H:i') ?? 'Waktu foto tidak tersedia' }}</div>
                                             <div class="mt-2 text-xs text-slate-400">Klik tombol lihat foto lagi untuk menutup dan kembali ke tampilan tabel biasa.</div>
                                         </div>
@@ -186,7 +186,7 @@
                 </tbody>
                     @empty
                 <tbody>
-                    <tr><td colspan="8" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan presensi pada filter ini.</td></tr>
+                    <tr><td colspan="8" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
                 </tbody>
                     @endforelse
             </table>
@@ -220,13 +220,13 @@
                             @else
                                 <span class="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
                                     <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                    Belum Presensi
+                                    Belum Absensi
                                 </span>
                             @endif
                         </div>
                     </div>
                     <div class="flex items-center justify-between gap-2">
-                        <div class="text-xs text-slate-400">Foto presensi masuk</div>
+                        <div class="text-xs text-slate-400">Foto absensi masuk</div>
                         @if($r->check_in_photo_url)
                             <button type="button" @click="photoOpen = !photoOpen" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700" :class="photoOpen ? 'border-brand-200 bg-brand-50 text-brand-700' : ''">
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
@@ -256,7 +256,7 @@
                     </div>
                     <div x-show="photoOpen" x-cloak class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                         @if($r->check_in_photo_url)
-                            <img src="{{ $r->check_in_photo_url }}" alt="Foto presensi {{ $user?->name ?? 'pegawai' }}" class="h-52 w-full object-cover">
+                            <img src="{{ $r->check_in_photo_url }}" alt="Foto absensi {{ $user?->name ?? 'pegawai' }}" class="h-52 w-full object-cover">
                             <div class="border-t border-slate-100 px-3 py-2 text-xs text-slate-500">{{ $r->check_in_photo_taken_at?->setTimezone(config('app.timezone'))?->format('d M Y, H:i') ?? 'Waktu foto tidak tersedia' }}</div>
                         @else
                             <div class="px-3 py-6 text-center text-sm text-slate-400">Tidak ada foto tersimpan.</div>
@@ -264,7 +264,7 @@
                     </div>
                 </div>
             @empty
-                <div class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan presensi pada filter ini.</div>
+                <div class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</div>
             @endforelse
         </div>
 

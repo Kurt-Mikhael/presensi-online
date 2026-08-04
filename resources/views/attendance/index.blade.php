@@ -1,6 +1,6 @@
 @extends('layouts.app', ['user' => $user])
 
-@section('title', 'Dashboard Presensi')
+@section('title', 'Dashboard Absensi')
 
 @section('content')
 <div
@@ -53,7 +53,7 @@
                     <div class="mt-1 text-sm font-semibold"
                          :class="loc.phase === 'inside' ? 'text-blue-700' : (loc.phase === 'outside' || loc.phase === 'error' ? 'text-red-600' : 'text-slate-400')">
                         <template x-if="loc.phase === 'inside'"><span x-text="'Dalam Area · ' + loc.areaName"></span></template>
-                        <template x-if="loc.phase === 'outside'"><span>Di Luar Area Presensi</span></template>
+                        <template x-if="loc.phase === 'outside'"><span>Di Luar Area Absensi</span></template>
                         <template x-if="loc.phase === 'no_area'"><span>Belum Ada Area Aktif</span></template>
                         <template x-if="loc.phase === 'searching'"><span>Menentukan…</span></template>
                         <template x-if="loc.phase === 'error'"><span x-text="loc.error"></span></template>
@@ -68,7 +68,7 @@
                 <div id="mini-map" class="h-full w-full"></div>
             </div>
             <div class="flex h-32 items-center justify-center px-4 text-center text-xs text-slate-400" x-show="areas.length === 0" x-cloak>
-                Belum ada area presensi aktif
+                Belum ada area absensi aktif
             </div>
             <div class="border-t border-slate-100 px-4 py-3 text-xs">
                 <div class="font-semibold text-slate-700">Lokasi Anda</div>
@@ -79,7 +79,7 @@
                     <div class="mt-1 text-slate-500">
                         Jarak dari titik pusat: <span class="font-mono tabular-nums" x-text="Math.round(loc.distance)"></span> m
                         <template x-if="loc.radius">
-                            <span> · Radius presensi: <span class="font-mono tabular-nums" x-text="loc.radius"></span> m</span>
+                            <span> · Radius absensi: <span class="font-mono tabular-nums" x-text="loc.radius"></span> m</span>
                         </template>
                     </div>
                 </template>
@@ -88,7 +88,7 @@
     </div>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 class="text-base font-semibold text-slate-900">Presensi Hari Ini</h2>
+        <h2 class="text-base font-semibold text-slate-900">Absensi Hari Ini</h2>
         <p class="mt-1 text-sm text-slate-500">Masuk dan pulang sesuai jadwal kerja.</p>
 
         <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -102,18 +102,18 @@
                 <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold"
                       :class="record.has_check_in ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-500'">
                     <span class="h-1.5 w-1.5 rounded-full" :class="record.has_check_in ? 'bg-blue-500' : 'bg-slate-400'"></span>
-                    <span x-text="record.has_check_in ? 'BERHASIL' : 'BELUM PRESENSI'">BELUM PRESENSI</span>
+                    <span x-text="record.has_check_in ? 'BERHASIL' : 'BELUM ABSENSI'">BELUM ABSENSI</span>
                 </span>
             </div>
             <h2 class="mt-4 text-base font-semibold text-slate-900">Check In</h2>
 
             <div class="mt-2 flex items-center gap-2 text-sm">
                 <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
-                <span class="text-slate-500">Batas Presensi Masuk</span>
+                <span class="text-slate-500">Batas Absensi Masuk</span>
                 <span class="font-mono font-semibold tabular-nums text-slate-900">{{ config('attendance.check_in_deadline', '08:30') }} WIB</span>
             </div>
 
-            {{-- Belum presensi: status lokasi + tombol --}}
+            {{-- Belum absensi: status lokasi + tombol --}}
             <template x-if="!record.has_check_in">
                 <div>
                     <p class="mt-3 text-sm"
@@ -131,7 +131,7 @@
                 </div>
             </template>
 
-            {{-- Sudah presensi: ringkasan sukses, tanpa tombol --}}
+            {{-- Sudah absensi: ringkasan sukses, tanpa tombol --}}
             <template x-if="record.has_check_in">
                 <div class="mt-4 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3.5">
                     <div class="flex items-center gap-2 text-sm font-semibold text-blue-800">
@@ -176,14 +176,14 @@
                 <span class="font-mono font-semibold tabular-nums text-slate-900">{{ config('attendance.work_end', '17:00') }} WIB</span>
             </div>
 
-            {{-- Terkunci: belum presensi masuk --}}
+            {{-- Terkunci: belum absensi masuk --}}
             <template x-if="!record.has_check_in">
                 <div>
-                    <p class="mt-3 text-sm text-slate-500">Presensi pulang tersedia setelah Anda melakukan presensi masuk.</p>
+                    <p class="mt-3 text-sm text-slate-500">Absensi pulang tersedia setelah Anda melakukan absensi masuk.</p>
                     <button type="button" disabled
                             class="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-3.5 text-sm font-semibold tracking-tight text-slate-400">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-                        Presensi Masuk Terlebih Dahulu
+                        Absensi Masuk Terlebih Dahulu
                     </button>
                 </div>
             </template>
@@ -200,7 +200,7 @@
                                 : 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800'"
                             class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold tracking-tight transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/30">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        <span x-text="loc.phase === 'inside' ? 'Check Out' : (loc.phase === 'outside' ? 'Di Luar Area Presensi' : 'Check Out')">Check Out</span>
+                        <span x-text="loc.phase === 'inside' ? 'Check Out' : (loc.phase === 'outside' ? 'Di Luar Area Absensi' : 'Check Out')">Check Out</span>
                     </button>
                 </div>
             </template>
@@ -229,7 +229,7 @@
                 </section>
             </div>
 
-                {{-- Foto Presensi --}}
+                {{-- Foto Absensi --}}
                 <section class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5">
             <div class="flex items-start justify-between gap-3">
                 <span class="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
@@ -239,14 +239,14 @@
                     Auto capture
                 </span>
             </div>
-            <h2 class="mt-4 text-base font-semibold text-slate-900">Foto Presensi</h2>
+            <h2 class="mt-4 text-base font-semibold text-slate-900">Foto Absensi</h2>
 
             <div class="mt-2 flex items-center gap-2 text-sm">
             </div>
 
             <div class="relative mx-auto my-auto aspect-square w-40 overflow-hidden rounded-full border border-slate-200 bg-slate-50 shadow-sm">
                 <template x-if="photo.previewUrl">
-                    <img :src="photo.previewUrl" alt="Foto presensi hari ini" class="h-full w-full object-cover">
+                            <img :src="photo.previewUrl" alt="Foto absensi hari ini" class="h-full w-full object-cover">
                 </template>
                 <template x-if="!photo.previewUrl">
                     <div class="flex h-full items-center justify-center text-slate-300">
@@ -359,7 +359,7 @@
 
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat presensi.</td></tr>
+                        <tr><td colspan="4" class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat absensi.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -391,7 +391,7 @@
                     </div>
                 </div>
             @empty
-                <div class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat presensi.</div>
+                <div class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat absensi.</div>
             @endforelse
         </div>
     </section>

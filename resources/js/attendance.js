@@ -46,7 +46,7 @@ function createPhotoCaptureError(message, code) {
 }
 
 /**
- * State factory untuk halaman presensi.
+ * State factory untuk halaman absensi.
  * Mengexpose ke Alpine via window.presensiPage(...).
  */
 window.presensiPage = function presensiPage(initial) {
@@ -197,7 +197,7 @@ window.presensiPage = function presensiPage(initial) {
             const update = (p) => this.evaluatePosition(p.coords.latitude, p.coords.longitude, p.coords.accuracy);
             const fail = (err) => {
                 const msg = err.code === err.PERMISSION_DENIED
-                    ? 'Izin akses lokasi ditolak. Aktifkan GPS untuk presensi.'
+                    ? 'Izin akses lokasi ditolak. Aktifkan GPS untuk absensi.'
                     : 'Lokasi tidak dapat ditentukan.';
                 this.loc = { ...this.loc, phase: 'error', error: msg };
             };
@@ -248,11 +248,11 @@ window.presensiPage = function presensiPage(initial) {
 
         get locMessage() {
             switch (this.loc.phase) {
-                case 'no_area': return 'Belum ada area presensi aktif.';
+                case 'no_area': return 'Belum ada area absensi aktif.';
                 case 'searching': return 'Menentukan lokasi Anda…';
                 case 'error': return this.loc.error || 'Lokasi tidak dapat ditentukan.';
-                case 'inside': return `Anda berada di dalam area presensi · ${this.loc.areaName}`;
-                case 'outside': return `Di luar area presensi · ±${Math.round(this.loc.distance)} m dari ${this.loc.areaName}`;
+                case 'inside': return `Anda berada di dalam area absensi · ${this.loc.areaName}`;
+                case 'outside': return `Di luar area absensi · ±${Math.round(this.loc.distance)} m dari ${this.loc.areaName}`;
                 default: return '';
             }
         },
@@ -267,12 +267,12 @@ window.presensiPage = function presensiPage(initial) {
         get checkInButtonLabel() {
             if (this.record.has_check_in) return 'Sudah Check In';
             if (this.loc.phase === 'inside') return 'Check In';
-            if (this.loc.phase === 'outside') return 'Di Luar Area Presensi';
+            if (this.loc.phase === 'outside') return 'Di Luar Area Absensi';
             if (this.loc.phase === 'no_area') return 'Area Belum Tersedia';
             return 'Check In';
         },
 
-        // ---------- Aksi presensi ----------
+        // ---------- Aksi absensi ----------
 
         async doCheckIn() {
             await this.run('check-in');
@@ -287,7 +287,7 @@ window.presensiPage = function presensiPage(initial) {
                 await this.checkConnection();
             }
             if (this.connection.online !== true) {
-                this.status = { phase: 'error', code: 'OFFLINE', message: 'Presensi membutuhkan koneksi internet. Periksa koneksi Anda.', accuracy: null };
+                this.status = { phase: 'error', code: 'OFFLINE', message: 'Absensi membutuhkan koneksi internet. Periksa koneksi Anda.', accuracy: null };
                 return;
             }
 
@@ -361,12 +361,12 @@ window.presensiPage = function presensiPage(initial) {
                 this.status = {
                     phase: 'done',
                     code: '',
-                    message: type === 'check-in' ? 'Presensi masuk berhasil.' : 'Presensi pulang berhasil.',
+                    message: type === 'check-in' ? 'Absensi masuk berhasil.' : 'Absensi pulang berhasil.',
                     accuracy: pos.accuracy,
                 };
             } catch (e) {
                 if (type === 'check-in') {
-                    this.photo.error = e.message || 'Foto presensi gagal diambil.';
+                    this.photo.error = e.message || 'Foto absensi gagal diambil.';
                 }
 
                 this.status = {

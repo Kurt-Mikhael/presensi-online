@@ -1,6 +1,6 @@
 @extends('layouts.app', ['user' => auth()->user()])
 
-@section('title', 'Pengaturan Area Presensi')
+@section('title', 'Pengaturan Area Absensi')
 
 @section('content')
 <div
@@ -13,8 +13,8 @@
     class="space-y-5"
 >
     <header class="flex flex-col gap-1">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Pengaturan Area Presensi</h1>
-        <p class="text-sm text-slate-500">Tentukan titik dan radius area kerja untuk presensi karyawan.</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Pengaturan Area Absensi</h1>
+        <p class="text-sm text-slate-500">Tentukan titik dan radius area kerja untuk absensi karyawan.</p>
     </header>
 
     {{-- Pesan --}}
@@ -113,7 +113,7 @@
                 <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3">
                     <div>
                         <div class="text-sm font-semibold text-slate-800">Area Aktif</div>
-                        <div class="text-xs text-slate-500">Izinkan presensi di lokasi ini</div>
+                        <div class="text-xs text-slate-500">Izinkan absensi di lokasi ini</div>
                     </div>
                     <button type="button" @click="form.is_active = !form.is_active"
                             :class="form.is_active ? 'bg-brand-600' : 'bg-slate-300'"

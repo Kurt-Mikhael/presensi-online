@@ -7,8 +7,8 @@
     <meta name="theme-color" content="#1e4fa8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Presensi') · Presensi Online</title>
-    <meta name="description" content="Aplikasi presensi masuk dan pulang dengan validasi lokasi.">
+    <title>@yield('title', 'Absensi') · Absensi Online</title>
+    <meta name="description" content="Aplikasi absensi masuk dan pulang dengan validasi lokasi.">
 
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
@@ -16,7 +16,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Presensi">
+    <meta name="apple-mobile-web-app-title" content="Absensi">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')

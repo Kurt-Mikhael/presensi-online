@@ -20,13 +20,13 @@
                     <span class="grid h-9 w-9 place-items-center rounded-lg bg-white/15 backdrop-blur-sm">
                         <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9.5"/></svg>
                     </span>
-                    <span class="text-base font-semibold tracking-tight">Presensi <span class="text-white/60">Online</span></span>
+                    <span class="text-base font-semibold tracking-tight">Absensi <span class="text-white/60">Online</span></span>
                 </div>
 
                 <div class="mt-12" style="max-width: 380px;">
                     <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90">PT Modern Widya Technical</div>
                     <h1 class="mt-3 text-[1.6rem] font-semibold leading-tight tracking-tight">
-                        Sistem Presensi Karyawan
+                        Sistem Absensi Karyawan
                     </h1>
                     <p class="mt-4 text-sm leading-relaxed text-white/90">
                         Catat kehadiran masuk dan pulang kerja dengan validasi lokasi area kerja.
@@ -49,7 +49,7 @@
                     <span class="grid h-9 w-9 place-items-center rounded-lg bg-brand-600 text-white">
                         <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9.5"/></svg>
                     </span>
-                    <span class="text-base font-semibold tracking-tight text-slate-900">Presensi <span class="text-slate-400">Online</span></span>
+                    <span class="text-base font-semibold tracking-tight text-slate-900">Absensi <span class="text-slate-400">Online</span></span>
                 </div>
                 <div class="mt-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-700">PT Modern Widya Technical</div>
             </div>
@@ -108,7 +108,7 @@
 
             <div class="mt-6 flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-xs text-slate-600">
                 <svg class="mt-0.5 h-4 w-4 flex-none text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-                <p>Aplikasi ini memerlukan akses internet dan izin Lokasi (GPS) yang aktif untuk memverifikasi area presensi Anda.</p>
+                <p>Aplikasi ini memerlukan akses internet dan izin Lokasi (GPS) yang aktif untuk memverifikasi area absensi Anda.</p>
             </div>
         </div>
     </section>

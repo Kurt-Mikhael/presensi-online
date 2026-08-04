@@ -1,7 +1,7 @@
 {
-    "name": "Presensi Online",
-    "short_name": "Presensi",
-    "description": "Presensi masuk dan pulang dengan validasi lokasi.",
+    "name": "Absensi Online",
+    "short_name": "Absensi",
+    "description": "Absensi masuk dan pulang dengan validasi lokasi.",
     "start_url": "/attendance",
     "scope": "/",
     "display": "standalone",

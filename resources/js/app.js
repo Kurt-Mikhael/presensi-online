@@ -67,7 +67,7 @@ window.apiRequest = async function apiRequest(url, { method = 'POST', body = nul
 
 export class ApiError extends Error {
     static offline(cause) {
-        return new ApiError('Presensi membutuhkan koneksi internet. Silakan periksa koneksi Anda.', 'OFFLINE', 0);
+        return new ApiError('Absensi membutuhkan koneksi internet. Silakan periksa koneksi Anda.', 'OFFLINE', 0);
     }
 
     constructor(message, errorCode, status, data) {

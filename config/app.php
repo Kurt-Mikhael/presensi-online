@@ -2,7 +2,7 @@
 
 return [
 
-    'name' => env('APP_NAME', 'Presensi Online'),
+    'name' => env('APP_NAME', 'Absensi Online'),
     'env' => env('APP_ENV', 'production'),
     'debug' => (bool) env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost'),

@@ -1,13 +1,13 @@
 @extends('layouts.app', ['user' => $user])
 
-@section('title', 'Riwayat Presensi')
+@section('title', 'Riwayat Absensi')
 
 @section('content')
 <div class="space-y-5">
     {{-- Header --}}
     <header class="flex flex-wrap items-start justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Riwayat Presensi</h1>
+            <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Riwayat Absensi</h1>
             <p class="mt-1 text-sm text-slate-500">Seluruh catatan kehadiran Anda, {{ $records->total() }} hari tercatat.</p>
         </div>
         <a href="{{ route('attendance.index') }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-brand-200 hover:text-brand-700">
@@ -45,7 +45,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat presensi.</td></tr>
+                        <tr><td colspan="4" class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat absensi.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -77,7 +77,7 @@
                     </div>
                 </div>
             @empty
-                <div class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat presensi.</div>
+                <div class="px-5 py-8 text-center text-sm text-slate-400">Belum ada riwayat absensi.</div>
             @endforelse
         </div>
 
