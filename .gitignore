@@ -10,7 +10,6 @@
 # Laravel
 /vendor
 /node_modules
-/public/build
 /public/hot
 /storage/*.key
 /storage/app/*
