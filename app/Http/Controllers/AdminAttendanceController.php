@@ -16,10 +16,7 @@ class AdminAttendanceController extends Controller
      */
     public function index(Request $request): View
     {
-        $filters = [
-            'date' => $request->input('date') ?: now()->toDateString(),
-            'q' => $request->input('q'),
-        ];
+        $filters = $this->filters($request);
 
         $base = $this->query($filters);
         $stats = [
@@ -39,14 +36,52 @@ class AdminAttendanceController extends Controller
     }
 
     /**
+     * GET /admin/attendance/export — laporan presensi yang mengikuti filter.
+     */
+    public function export(Request $request)
+    {
+        $filters = $this->filters($request, false);
+        $records = $this->query($filters)->get();
+        $filename = 'laporan-presensi-'.now()->format('Y-m-d-His').'.xls';
+
+        return response()->streamDownload(function () use ($records) {
+            echo "\xEF\xBB\xBF";
+            echo '<table border="1"><thead><tr>';
+            foreach (['Tanggal', 'No. Pegawai', 'Nama Pegawai', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Lembur', 'Status'] as $heading) {
+                echo '<th>'.e($heading).'</th>';
+            }
+            echo '</tr></thead><tbody>';
+
+            foreach ($records as $record) {
+                $status = $record->check_in_at && $record->check_out_at
+                    ? 'Lengkap'
+                    : ($record->check_in_at ? 'Sudah Masuk' : 'Belum Presensi');
+                $values = [
+                    $record->attendance_date?->format('Y-m-d'),
+                    $record->user?->employee_number,
+                    $record->user?->name,
+                    $record->check_in_at?->setTimezone(config('app.timezone'))?->format('H:i'),
+                    $record->check_out_at?->setTimezone(config('app.timezone'))?->format('H:i'),
+                    $record->work_duration ?? '-',
+                    $record->overtime_duration ?? '-',
+                    $status,
+                ];
+
+                echo '<tr>'.collect($values)->map(fn ($value) => '<td>'.e($value ?? '-').'</td>')->implode('').'</tr>';
+            }
+
+            echo '</tbody></table>';
+        }, $filename, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        ]);
+    }
+
+    /**
      * GET /api/admin/attendance — daftar presensi (JSON, paginasi).
      */
     public function list(Request $request): JsonResponse
     {
-        $filters = [
-            'date' => $request->input('date') ?: now()->toDateString(),
-            'q' => $request->input('q'),
-        ];
+        $filters = $this->filters($request);
 
         $paginator = $this->query($filters)->paginate(self::PER_PAGE);
 
@@ -69,8 +104,12 @@ class AdminAttendanceController extends Controller
             ->orderByDesc('attendance_date')
             ->orderByDesc('check_in_at');
 
-        if (! empty($filters['date'])) {
-            $q->whereDate('attendance_date', $filters['date']);
+        if (! empty($filters['date_from'])) {
+            $q->whereDate('attendance_date', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $q->whereDate('attendance_date', '<=', $filters['date_to']);
         }
 
         if (! empty($filters['q'])) {
@@ -82,5 +121,24 @@ class AdminAttendanceController extends Controller
         }
 
         return $q;
+    }
+
+    protected function filters(Request $request, bool $defaultToday = true): array
+    {
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        $legacyDate = $request->input('date');
+
+        if ($defaultToday && $dateFrom === null && $dateTo === null) {
+            $dateFrom = $dateTo = now()->toDateString();
+        } elseif ($dateFrom === null && $dateTo === null && $legacyDate !== null) {
+            $dateFrom = $dateTo = $legacyDate;
+        }
+
+        return [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'q' => $request->input('q'),
+        ];
     }
 }

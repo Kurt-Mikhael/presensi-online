@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/location', [AdminLocationController::class, 'index'])->name('admin.location');
     Route::get('/attendance', [AdminAttendanceController::class, 'index'])->name('admin.attendance.index');
+    Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('admin.attendance.export');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('api/admin')->group(function () {

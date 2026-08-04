@@ -18,14 +18,23 @@
 
     {{-- Filter --}}
     <section class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-        <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
             <div>
-                <label for="date" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Tanggal</label>
+                <label for="date_from" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Dari tanggal</label>
                 <div class="relative mt-1.5">
                     <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                     </span>
-                    <input id="date" type="date" name="date" value="{{ $filters['date'] ?? '' }}" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
+                    <input id="date_from" type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
+                </div>
+            </div>
+            <div>
+                <label for="date_to" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Sampai tanggal</label>
+                <div class="relative mt-1.5">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+                    </span>
+                    <input id="date_to" type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
                 </div>
             </div>
             <div>
@@ -37,10 +46,14 @@
                     <input id="q" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Cari nama atau nomor pegawai…" class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 sm:w-auto">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
                     Cari
+                </button>
+                <button type="submit" formaction="{{ route('admin.attendance.export') }}" formtarget="_blank" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 sm:w-auto">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+                    Export Excel
                 </button>
                 <a href="{{ route('admin.attendance.index') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Reset</a>
             </div>
@@ -94,13 +107,15 @@
     {{-- Tabel (desktop) --}}
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div class="hidden overflow-x-auto md:block">
-            <table class="w-full min-w-[760px] border-collapse text-sm">
+            <table class="w-full min-w-[980px] border-collapse text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         <th class="px-5 py-3">No. Pegawai</th>
                         <th class="px-5 py-3">Nama Pegawai</th>
                         <th class="px-5 py-3">Jam Masuk</th>
                         <th class="px-5 py-3">Jam Pulang</th>
+                        <th class="px-5 py-3">Durasi Kerja</th>
+                        <th class="px-5 py-3">Lembur</th>
                         <th class="px-5 py-3">Status</th>
                         <th class="px-5 py-3 text-right">Aksi</th>
                     </tr>
@@ -117,6 +132,8 @@
                             <td class="px-5 py-3.5 font-semibold text-slate-900">{{ $user?->name ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $ci?->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $co?->format('H:i') ?? '—' }}</td>
+                            <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->work_duration ?? '—' }}</td>
+                            <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->overtime_duration ?? '-' }}</td>
                             <td class="px-5 py-3.5">
                                 @if($r->check_in_at && $r->check_out_at)
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
@@ -147,7 +164,7 @@
                             </td>
                         </tr>
                         <tr x-show="photoOpen" x-cloak>
-                            <td colspan="6" class="bg-slate-50 px-5 py-4">
+                            <td colspan="8" class="bg-slate-50 px-5 py-4">
                                 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
                                     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                                         @if($r->check_in_photo_url)
@@ -169,7 +186,7 @@
                 </tbody>
                     @empty
                 <tbody>
-                    <tr><td colspan="6" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan presensi pada filter ini.</td></tr>
+                    <tr><td colspan="8" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan presensi pada filter ini.</td></tr>
                 </tbody>
                     @endforelse
             </table>
@@ -227,6 +244,14 @@
                         <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
                             <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jam Pulang</div>
                             <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $co?->format('H:i') ?? '—' }}</div>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
+                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Durasi Kerja</div>
+                            <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $r->work_duration ?? '—' }}</div>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
+                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lembur</div>
+                            <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $r->overtime_duration ?? '-' }}</div>
                         </div>
                     </div>
                     <div x-show="photoOpen" x-cloak class="overflow-hidden rounded-xl border border-slate-200 bg-white">
