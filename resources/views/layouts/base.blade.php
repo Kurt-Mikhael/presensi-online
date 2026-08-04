@@ -11,8 +11,9 @@
     <meta name="description" content="Aplikasi absensi masuk dan pulang dengan validasi lokasi.">
 
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-    <link rel="icon" href="{{ asset('icons/icon-192.png') }}" type="image/png">
-    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
+    @php($iconVersion = file_exists(public_path('icons/icon-192.png')) ? filemtime(public_path('icons/icon-192.png')) : 1)
+    <link rel="icon" href="{{ asset('icons/icon-192.png') }}?v={{ $iconVersion }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}?v={{ $iconVersion }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
