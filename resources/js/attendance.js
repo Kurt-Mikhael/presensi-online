@@ -78,12 +78,14 @@ window.presensiPage = function presensiPage(initial) {
         busy: false,
         todayLabel: '',
         serverClock: '',
+        historyVersion: null,
 
         init() {
             this.todayLabel = formatDateLong(new Date());
             this.tick();
             setInterval(() => this.tick(), 1000);
             this.checkConnection();
+            setInterval(() => this.syncRecord(), 15000);
             this.$nextTick(() => this.initMiniMap());
             this.startLocationWatch();
         },
@@ -108,10 +110,18 @@ window.presensiPage = function presensiPage(initial) {
             try {
                 const r = await window.apiRequest(ACC_CHECK_URL, { method: 'GET' });
                 if (r?.success && r.data) {
+                    const historyChanged = this.historyVersion !== null
+                        && this.historyVersion !== r.data.history_version;
+
                     this.record.has_check_in = !!r.data.has_check_in;
                     this.record.has_check_out = !!r.data.has_check_out;
                     this.record.check_in_at = r.data.check_in_at;
                     this.record.check_out_at = r.data.check_out_at;
+                    this.historyVersion = r.data.history_version;
+
+                    if (historyChanged && document.visibilityState === 'visible') {
+                        window.location.reload();
+                    }
                 }
             } catch (e) {}
         },

@@ -8,7 +8,7 @@
     <header class="flex flex-wrap items-start justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Riwayat Absensi</h1>
-            <p class="mt-1 text-sm text-slate-500">Seluruh catatan kehadiran Anda, {{ $records->total() }} hari tercatat.</p>
+            <p class="mt-1 text-sm text-slate-500">Seluruh catatan kehadiran Anda, {{ $records->count() }} hari tercatat.</p>
         </div>
         <a href="{{ route('attendance.index') }}" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-brand-200 hover:text-brand-700">
             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
@@ -40,7 +40,7 @@
                                 @elseif($r->check_in_at)
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Belum Pulang</span>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">Tidak Valid</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">Tidak Hadir</span>
                                 @endif
                             </td>
                         </tr>
@@ -62,7 +62,7 @@
                         @elseif($r->check_in_at)
                             <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Belum Pulang</span>
                         @else
-                            <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">Tidak Valid</span>
+                            <span class="inline-flex flex-none items-center gap-1.5 rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">Tidak Hadir</span>
                         @endif
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-xs">
@@ -81,12 +81,6 @@
             @endforelse
         </div>
 
-        {{-- Pagination --}}
-        @if($records->hasPages())
-            <div class="border-t border-slate-100 px-5 py-4">
-                {{ $records->links() }}
-            </div>
-        @endif
     </section>
 </div>
 @endsection

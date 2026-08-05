@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AttendanceRecord;
 use App\Repositories\LocationRepository;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
@@ -21,11 +22,9 @@ class AttendanceController extends Controller
     public function index(Request $request): View
     {
         $record = $this->attendance->getTodayRecord($request->user());
-        $recent = $request->user()->attendanceRecords()
-            ->where('attendance_date', '<', today())
-            ->orderByDesc('attendance_date')
-            ->limit(5)
-            ->get();
+        $recent = $this->getHistoryRecords($request->user())
+            ->take(5)
+            ->values();
 
         $activeAreas = $this->attendance->getActiveAreas();
 
@@ -44,9 +43,8 @@ class AttendanceController extends Controller
      */
     public function history(Request $request): View
     {
-        $records = $request->user()->attendanceRecords()
-            ->orderByDesc('attendance_date')
-            ->paginate(10);
+        $this->attendance->getTodayRecord($request->user());
+        $records = $this->getHistoryRecords($request->user());
 
         return view('attendance.history', [
             'user' => $request->user(),
@@ -71,6 +69,7 @@ class AttendanceController extends Controller
                 'check_in_photo_taken_at' => $record->check_in_photo_taken_at?->toIso8601String(),
                 'has_check_in' => $record->check_in_at !== null,
                 'has_check_out' => $record->check_out_at !== null,
+                'history_version' => $request->user()->attendanceRecords()->max('updated_at'),
                 'server_time' => now()->toIso8601String(),
             ],
         ]);
@@ -127,6 +126,45 @@ class AttendanceController extends Controller
             'captured_at' => ['required', 'string'],
             'check_in_photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
         ]);
+    }
+
+    protected function isVisibleHistoryRecord($record): bool
+    {
+        return $record->attendance_date?->isWeekday()
+            || $record->check_in_at !== null
+            || $record->check_out_at !== null;
+    }
+
+    protected function getHistoryRecords($user)
+    {
+        $storedRecords = $user->attendanceRecords()
+            ->orderByDesc('attendance_date')
+            ->get()
+            ->keyBy(fn ($record) => $record->attendance_date->toDateString());
+
+        $startDate = $storedRecords->pluck('attendance_date')->filter()->sort()->first();
+
+        if (! $startDate) {
+            return collect();
+        }
+
+        $records = collect();
+        $today = today();
+
+        for ($date = $startDate->copy(); $date->lte($today); $date->addDay()) {
+            $dateKey = $date->toDateString();
+            $record = $storedRecords->get($dateKey);
+
+            if ($record && $this->isVisibleHistoryRecord($record)) {
+                $records->push($record);
+            } elseif ($date->isWeekday()) {
+                $records->push(new AttendanceRecord([
+                    'attendance_date' => $date->copy(),
+                ]));
+            }
+        }
+
+        return $records->reverse()->values();
     }
 
     protected function validateLocation(Request $request): array
