@@ -16,6 +16,13 @@
         <p class="text-sm text-slate-500">Pantau catatan absensi seluruh karyawan berdasarkan periode.</p>
     </header>
 
+    @if(session('status'))
+        <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('status') }}</div>
+    @endif
+    @if($errors->any())
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ $errors->first() }}</div>
+    @endif
+
     {{-- Filter --}}
     <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <form method="get" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(18rem,1.35fr)] lg:gap-5">
@@ -112,6 +119,7 @@
                     <tr class="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         <th class="px-5 py-3">No. Pegawai</th>
                         <th class="px-5 py-3">Nama Pegawai</th>
+                        <th class="px-5 py-3">Tanggal</th>
                         <th class="px-5 py-3">Jam Masuk</th>
                         <th class="px-5 py-3">Jam Pulang</th>
                         <th class="px-5 py-3">Durasi Kerja</th>
@@ -125,17 +133,23 @@
                             $user = $r->user;
                             $ci = $r->check_in_at?->setTimezone(config('app.timezone'));
                             $co = $r->check_out_at?->setTimezone(config('app.timezone'));
+                            $isWeekend = $r->attendance_date?->isWeekend();
                         @endphp
-                <tbody x-data="{ photoOpen: false }" class="divide-y divide-slate-100">
+                <tbody x-data="{ photoOpen: false, editOpen: false }" class="divide-y divide-slate-100">
                         <tr class="align-top">
                             <td class="px-5 py-3.5 font-mono text-xs text-slate-500">{{ $user?->employee_number ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-semibold text-slate-900">{{ $user?->name ?? '—' }}</td>
+                            <td class="px-5 py-3.5 text-slate-700">{{ $r->attendance_date?->translatedFormat('l, j M Y') }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $ci?->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $co?->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->work_duration ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->overtime_duration ?? '-' }}</td>
                             <td class="px-5 py-3.5">
-                                @if($r->check_in_at && $r->check_out_at)
+                                @if($isWeekend && ($r->check_in_at || $r->check_out_at))
+                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">Lembur</span>
+                                @elseif($isWeekend)
+                                    <span class="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Hari Libur</span>
+                                @elseif($r->check_in_at && $r->check_out_at)
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
                                         <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                         Lengkap
@@ -152,19 +166,51 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-5 py-3.5 text-right">
-                                @if($r->check_in_photo_url)
+                             <td class="px-5 py-3.5 text-right">
+                                 @if($r->check_in_photo_url)
                                     <button type="button" @click="photoOpen = !photoOpen" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700" :class="photoOpen ? 'border-brand-200 bg-brand-50 text-brand-700' : ''" aria-label="Lihat foto">
                                         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
                                         <span x-text="photoOpen ? 'Tutup Foto' : 'Lihat Foto'"></span>
                                     </button>
-                                @else
-                                    <span class="text-xs text-slate-400">Belum ada foto</span>
-                                @endif
-                            </td>
-                        </tr>
+                                 @else
+                                     <span class="text-xs text-slate-400">Belum ada foto</span>
+                                 @endif
+                                 @if(auth()->user()->isSuperAdmin())
+                                     <button type="button" @click="editOpen = !editOpen" class="ml-2 inline-flex items-center gap-1.5 rounded-full border border-brand-200 px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-50">
+                                         <span x-text="editOpen ? 'Tutup Koreksi' : 'Koreksi Waktu'"></span>
+                                     </button>
+                                 @endif
+                             </td>
+                         </tr>
+                         @if(auth()->user()->isSuperAdmin())
+                             <tr x-show="editOpen" x-cloak>
+                                 <td colspan="9" class="border-t border-brand-100 bg-brand-50/40 px-5 py-4">
+                                     <form method="post" action="{{ route('admin.attendance.times', [$user, $r->attendance_date?->format('Y-m-d')]) }}" class="grid gap-3 lg:grid-cols-[1fr_1fr_1.4fr_auto] lg:items-end">
+                                         @csrf
+                                         @method('PATCH')
+                                         <div>
+                                             <label class="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">Jam masuk</label>
+                                             <input type="datetime-local" name="check_in_at" value="{{ $r->check_in_at?->setTimezone(config('app.timezone'))->format('Y-m-d\\TH:i') }}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs">
+                                         </div>
+                                         <div>
+                                             <label class="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">Jam pulang</label>
+                                             <input type="datetime-local" name="check_out_at" value="{{ $r->check_out_at?->setTimezone(config('app.timezone'))->format('Y-m-d\\TH:i') }}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs">
+                                         </div>
+                                         <div>
+                                             <label class="block text-[10px] font-semibold uppercase tracking-wide text-slate-500">Catatan koreksi</label>
+                                             <input type="text" name="correction_note" placeholder="Contoh: Lupa absensi masuk" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs">
+                                         </div>
+                                         <div class="flex flex-wrap gap-2">
+                                             <button type="submit" name="action" value="save" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700">Simpan</button>
+                                             <button type="submit" name="action" value="cancel_check_in" class="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50">Batalkan Masuk</button>
+                                             <button type="submit" name="action" value="cancel_check_out" class="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50">Batalkan Pulang</button>
+                                         </div>
+                                     </form>
+                                 </td>
+                             </tr>
+                         @endif
                         <tr x-show="photoOpen" x-cloak>
-                            <td colspan="8" class="bg-slate-50 px-5 py-4">
+                            <td colspan="9" class="bg-slate-50 px-5 py-4">
                                 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
                                     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                                         @if($r->check_in_photo_url)
@@ -186,7 +232,7 @@
                 </tbody>
                     @empty
                 <tbody>
-                    <tr><td colspan="8" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
+                    <tr><td colspan="9" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
                 </tbody>
                     @endforelse
             </table>
@@ -199,15 +245,20 @@
                     $user = $r->user;
                     $ci = $r->check_in_at?->setTimezone(config('app.timezone'));
                     $co = $r->check_out_at?->setTimezone(config('app.timezone'));
-                @endphp
+                        @endphp
                 <div x-data="{ photoOpen: false }" class="space-y-2.5 px-4 py-3.5">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
                             <div class="truncate text-sm font-semibold text-slate-900">{{ $user?->name ?? '—' }}</div>
                             <div class="font-mono text-xs text-slate-500">{{ $user?->employee_number ?? '—' }}</div>
+                            <div class="mt-0.5 text-xs text-slate-500">{{ $r->attendance_date?->translatedFormat('l, j M Y') }}</div>
                         </div>
                         <div class="flex-none">
-                            @if($r->check_in_at && $r->check_out_at)
+                            @if($r->attendance_date?->isWeekend() && ($r->check_in_at || $r->check_out_at))
+                                <span class="inline-flex items-center gap-1.5 rounded-md bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">Lembur</span>
+                            @elseif($r->attendance_date?->isWeekend())
+                                <span class="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Hari Libur</span>
+                            @elseif($r->check_in_at && $r->check_out_at)
                                 <span class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
                                     <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                     Lengkap
@@ -232,10 +283,27 @@
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
                                 <span x-text="photoOpen ? 'Tutup Foto' : 'Lihat Foto'"></span>
                             </button>
-                        @else
-                            <span class="text-xs text-slate-400">Belum ada foto</span>
-                        @endif
-                    </div>
+                         @else
+                             <span class="text-xs text-slate-400">Belum ada foto</span>
+                         @endif
+                         @if(auth()->user()->isSuperAdmin())
+                             <details class="mt-2">
+                                 <summary class="cursor-pointer text-xs font-semibold text-brand-700">Koreksi waktu</summary>
+                                 <form method="post" action="{{ route('admin.attendance.times', [$user, $r->attendance_date?->format('Y-m-d')]) }}" class="mt-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                                     @csrf
+                                     @method('PATCH')
+                                     <input type="datetime-local" name="check_in_at" value="{{ $r->check_in_at?->setTimezone(config('app.timezone'))->format('Y-m-d\\TH:i') }}" class="w-full rounded-md border border-slate-300 px-2 py-1 text-xs">
+                                     <input type="datetime-local" name="check_out_at" value="{{ $r->check_out_at?->setTimezone(config('app.timezone'))->format('Y-m-d\\TH:i') }}" class="w-full rounded-md border border-slate-300 px-2 py-1 text-xs">
+                                     <input type="text" name="correction_note" placeholder="Catatan (opsional)" class="w-full rounded-md border border-slate-300 px-2 py-1 text-xs">
+                                     <div class="grid grid-cols-3 gap-1.5">
+                                         <button type="submit" name="action" value="save" class="rounded-md bg-brand-600 px-2 py-1.5 text-xs font-semibold text-white">Simpan</button>
+                                         <button type="submit" name="action" value="cancel_check_in" class="rounded-md border border-red-200 bg-white px-2 py-1.5 text-xs font-semibold text-red-700">Batalkan Masuk</button>
+                                         <button type="submit" name="action" value="cancel_check_out" class="rounded-md border border-red-200 bg-white px-2 py-1.5 text-xs font-semibold text-red-700">Batalkan Pulang</button>
+                                     </div>
+                                 </form>
+                             </details>
+                         @endif
+                     </div>
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
                             <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jam Masuk</div>

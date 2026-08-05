@@ -31,6 +31,7 @@ class AttendanceRecord extends Model
             'check_out_longitude' => 'float',
             'check_out_accuracy' => 'float',
             'check_out_is_inside_area' => 'boolean',
+            'corrected_at' => 'datetime',
         ];
     }
 

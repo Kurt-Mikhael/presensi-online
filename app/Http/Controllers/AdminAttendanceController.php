@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceRecord;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class AdminAttendanceController extends Controller
 {
@@ -18,7 +22,8 @@ class AdminAttendanceController extends Controller
     {
         $filters = $this->filters($request);
 
-        $base = $this->query($filters);
+        $dailyRecords = $this->dailyRecords($filters);
+        $base = $dailyRecords;
         $stats = [
             'total' => (clone $base)->count(),
             'masuk' => (clone $base)->whereNotNull('check_in_at')->count(),
@@ -26,7 +31,7 @@ class AdminAttendanceController extends Controller
             'pending' => (clone $base)->whereNull('check_in_at')->count(),
         ];
 
-        $records = (clone $base)->paginate(self::PER_PAGE)->withQueryString();
+        $records = $this->paginateCollection($dailyRecords, $request);
 
         return view('admin.attendance', [
             'records' => $records,
@@ -40,14 +45,78 @@ class AdminAttendanceController extends Controller
      */
     public function export(Request $request)
     {
-        $filters = $this->filters($request, false);
-        $records = $this->query($filters)->get();
+        $filters = $this->filters($request);
+        $records = $this->dailyRecords($filters);
         $filename = 'laporan-presensi-'.now()->format('Y-m-d-His').'.xlsx';
         $path = $this->createXlsx($records);
 
         return response()->download($path, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
+    }
+
+    public function updateTimes(Request $request, User $user, string $date): RedirectResponse
+    {
+        $data = $request->validate([
+            'action' => ['required', 'in:save,cancel_check_in,cancel_check_out'],
+            'check_in_at' => ['nullable', 'date'],
+            'check_out_at' => ['nullable', 'date'],
+            'correction_note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        if ($data['action'] !== 'save' && blank($data['correction_note'] ?? null)) {
+            return back()->withErrors(['correction_note' => 'Catatan wajib diisi saat membatalkan absensi.']);
+        }
+
+        $attendanceDate = Carbon::createFromFormat('Y-m-d', $date);
+
+        foreach (['check_in_at', 'check_out_at'] as $field) {
+            if (! empty($data[$field]) && Carbon::parse($data[$field])->toDateString() !== $attendanceDate->toDateString()) {
+                return back()->withErrors([$field => 'Waktu koreksi harus berada pada tanggal absensi.']);
+            }
+        }
+
+        if ($data['action'] === 'save' && $data['check_in_at'] && $data['check_out_at']
+            && strtotime($data['check_out_at']) < strtotime($data['check_in_at'])) {
+            return back()->withErrors(['check_out_at' => 'Jam pulang harus setelah jam masuk.']);
+        }
+
+        $record = AttendanceRecord::firstOrNew([
+            'user_id' => $user->id,
+            'attendance_date' => $attendanceDate->toDateString(),
+        ]);
+        $updates = [
+            'corrected_by' => $request->user()->id,
+            'corrected_at' => now(),
+            'correction_note' => $data['correction_note'] ?? null,
+        ];
+
+        if ($data['action'] === 'cancel_check_in') {
+            $updates += [
+                'check_in_at' => null,
+                'check_in_latitude' => null,
+                'check_in_longitude' => null,
+                'check_in_accuracy' => null,
+                'check_in_is_inside_area' => null,
+                'check_in_photo_path' => null,
+                'check_in_photo_taken_at' => null,
+            ];
+        } elseif ($data['action'] === 'cancel_check_out') {
+            $updates += [
+                'check_out_at' => null,
+                'check_out_latitude' => null,
+                'check_out_longitude' => null,
+                'check_out_accuracy' => null,
+                'check_out_is_inside_area' => null,
+            ];
+        } else {
+            $updates['check_in_at'] = $data['check_in_at'] ?? null;
+            $updates['check_out_at'] = $data['check_out_at'] ?? null;
+        }
+
+        $record->fill($updates)->save();
+
+        return back()->with('status', 'Waktu absensi berhasil dikoreksi.');
     }
 
     /**
@@ -116,6 +185,62 @@ class AdminAttendanceController extends Controller
         ];
     }
 
+    protected function dailyRecords(array $filters)
+    {
+        $dateFrom = Carbon::parse($filters['date_from']);
+        $dateTo = Carbon::parse($filters['date_to']);
+        $users = User::query()
+            ->where('role', 'employee')
+            ->where('is_active', true)
+            ->when($filters['q'], function ($query, $term) {
+                $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
+                $query->where(function ($userQuery) use ($term) {
+                    $userQuery->where('name', 'ilike', $term)
+                        ->orWhere('employee_number', 'ilike', $term);
+                });
+            })
+            ->orderBy('name')
+            ->get();
+
+        $attendance = AttendanceRecord::query()
+            ->with('user:id,employee_number,name,role')
+            ->whereDate('attendance_date', '>=', $dateFrom)
+            ->whereDate('attendance_date', '<=', $dateTo)
+            ->get()
+            ->keyBy(fn ($record) => $record->user_id.'|'.$record->attendance_date->toDateString());
+
+        $records = collect();
+        for ($date = $dateFrom->copy(); $date->lte($dateTo); $date->addDay()) {
+            foreach ($users as $user) {
+                $dateKey = $date->toDateString();
+                $record = $attendance->get($user->id.'|'.$dateKey) ?? new AttendanceRecord([
+                    'attendance_date' => $date->copy(),
+                    'user_id' => $user->id,
+                ]);
+
+                $records->push($record->setRelation('user', $user));
+            }
+        }
+
+        return $records->sortByDesc('attendance_date')->values();
+    }
+
+    protected function paginateCollection($items, Request $request): LengthAwarePaginator
+    {
+        $page = LengthAwarePaginator::resolveCurrentPage();
+
+        return new LengthAwarePaginator(
+            $items->forPage($page, self::PER_PAGE)->values(),
+            $items->count(),
+            self::PER_PAGE,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ],
+        );
+    }
+
     protected function createXlsx($records): string
     {
         $path = tempnam(sys_get_temp_dir(), 'presensi-export-');
@@ -154,6 +279,7 @@ XML);
         $rows = [$headings];
 
         foreach ($records as $record) {
+            $isWeekend = $record->attendance_date?->isWeekend();
             $rows[] = [
                 $record->attendance_date?->format('Y-m-d'),
                 $record->user?->employee_number,
@@ -162,9 +288,13 @@ XML);
                 $record->check_out_at?->setTimezone(config('app.timezone'))?->format('H:i'),
                 $record->work_duration ?? '-',
                 $record->overtime_duration ?? '-',
-                $record->check_in_at && $record->check_out_at
-                    ? 'Lengkap'
-                    : ($record->check_in_at ? 'Sudah Masuk' : 'Belum Presensi'),
+                $isWeekend && ($record->check_in_at || $record->check_out_at)
+                    ? 'Lembur'
+                    : ($isWeekend
+                        ? 'Hari Libur'
+                        : ($record->check_in_at && $record->check_out_at
+                            ? 'Lengkap'
+                            : ($record->check_in_at ? 'Sudah Masuk' : 'Belum Presensi'))),
             ];
         }
 

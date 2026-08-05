@@ -30,7 +30,12 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'superadmin'], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin';
     }
 
     public function isEmployee(): bool
@@ -46,5 +51,10 @@ class User extends Authenticatable
     public function attempts()
     {
         return $this->hasMany(AttendanceAttempt::class, 'user_id');
+    }
+
+    public function correctedAttendanceRecords()
+    {
+        return $this->hasMany(AttendanceRecord::class, 'corrected_by');
     }
 }

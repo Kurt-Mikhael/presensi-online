@@ -11,6 +11,15 @@ class UserSeeder extends Seeder
     {
         $rows = [
             [
+                'employee_number' => 'SADM-001',
+                'name' => 'Super Administrator',
+                'username' => 'superadmin',
+                'email' => 'superadmin@presensi.local',
+                'role' => 'superadmin',
+                'password' => 'superadmin123',
+                'is_active' => true,
+            ],
+            [
                 'employee_number' => 'ADM-001',
                 'name' => 'Administrator',
                 'username' => 'admin',
