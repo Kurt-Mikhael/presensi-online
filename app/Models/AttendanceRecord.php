@@ -98,10 +98,12 @@ class AttendanceRecord extends Model
     protected function expectedWorkEnd()
     {
         $settings = AttendanceSetting::current();
-        $workStart = $this->check_in_at->copy()->setTimezone(config('app.timezone'))
+        $checkIn = $this->check_in_at->copy()->setTimezone(config('app.timezone'));
+        $workStart = $checkIn->copy()
             ->setTimeFromTimeString($settings->work_start);
+        $normalStart = $checkIn->greaterThan($workStart) ? $checkIn : $workStart;
 
-        return $workStart->addMinutes((int) round($settings->work_duration_hours * 60));
+        return $normalStart->addMinutes((int) round($settings->work_duration_hours * 60));
     }
 
     protected function overtimeMinutes(): int
