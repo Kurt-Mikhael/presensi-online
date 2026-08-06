@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AttendanceSetting;
 use App\Repositories\LocationRepository;
 use App\Services\GeofenceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -32,7 +34,23 @@ class AdminLocationController extends Controller
                 'zoom' => (int) config('attendance.map.zoom', 16),
             ],
             'defaultAccuracy' => (float) config('attendance.max_gps_accuracy_meter', 50),
+            'workSettings' => AttendanceSetting::current(),
         ]);
+    }
+
+    public function updateWorkHours(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'work_start' => ['required', 'date_format:H:i'],
+            'work_duration_hours' => ['required', 'numeric', 'min:0.5', 'max:24'],
+        ]);
+
+        AttendanceSetting::current()->update([
+            'work_start' => $data['work_start'],
+            'work_duration_hours' => $data['work_duration_hours'],
+        ]);
+
+        return back()->with('status', 'Pengaturan jam kerja berhasil disimpan.');
     }
 
     /**

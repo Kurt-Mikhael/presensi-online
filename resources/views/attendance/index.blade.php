@@ -159,7 +159,7 @@
             <div class="mt-2 flex items-center gap-2 text-sm">
                 <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
                 <span class="text-slate-500">Jadwal Pulang</span>
-                <span class="font-mono font-semibold tabular-nums text-slate-900">{{ config('attendance.work_end', '17:00') }} WIB</span>
+                <span class="font-mono font-semibold tabular-nums text-slate-900">{{ $workSettings->workEnd() }} WIB</span>
             </div>
 
             {{-- Terkunci: belum absensi masuk --}}

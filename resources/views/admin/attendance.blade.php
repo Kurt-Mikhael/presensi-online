@@ -114,7 +114,7 @@
     {{-- Tabel (desktop) --}}
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div class="hidden overflow-x-auto md:block">
-            <table class="w-full min-w-[980px] border-collapse text-sm">
+            <table class="w-full min-w-[1300px] border-collapse text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         <th class="px-5 py-3">No. Pegawai</th>
@@ -124,6 +124,9 @@
                         <th class="px-5 py-3">Jam Pulang</th>
                         <th class="px-5 py-3">Durasi Kerja</th>
                         <th class="px-5 py-3">Lembur</th>
+                        <th class="px-5 py-3">Fase 1 (jam)</th>
+                        <th class="px-5 py-3">Fase 2 (jam)</th>
+                        <th class="px-5 py-3">Fase 3 (jam)</th>
                         <th class="px-5 py-3">Status</th>
                         <th class="px-5 py-3 text-right">Aksi</th>
                     </tr>
@@ -143,7 +146,18 @@
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $ci?->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $co?->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->work_duration ?? '—' }}</td>
-                            <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->overtime_duration ?? '-' }}</td>
+                            <td class="px-5 py-3.5 text-slate-700">
+                                <div class="font-mono tabular-nums">{{ $r->overtime_duration ?? '-' }}</div>
+                            </td>
+                            <td class="px-5 py-3.5 text-slate-700">
+                                {{ number_format($r->overtime_phases[0]['hours'] ?? 0, 2, '.', '') }}
+                            </td>
+                            <td class="px-5 py-3.5 text-slate-700">
+                                {{ number_format($r->overtime_phases[1]['hours'] ?? 0, 2, '.', '') }}
+                            </td>
+                            <td class="px-5 py-3.5 text-slate-700">
+                                {{ number_format($r->overtime_phases[2]['hours'] ?? 0, 2, '.', '') }}
+                            </td>
                             <td class="px-5 py-3.5">
                                 @if($isWeekend && ($r->check_in_at || $r->check_out_at))
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">Lembur</span>
@@ -184,7 +198,7 @@
                          </tr>
                          @if(auth()->user()->isSuperAdmin())
                              <tr x-show="editOpen" x-cloak>
-                                 <td colspan="9" class="border-t border-brand-100 bg-brand-50/40 px-5 py-4">
+                                 <td colspan="12" class="border-t border-brand-100 bg-brand-50/40 px-5 py-4">
                                      <form method="post" action="{{ route('admin.attendance.times', [$user, $r->attendance_date?->format('Y-m-d')]) }}" class="grid gap-3 lg:grid-cols-[1fr_1fr_1.4fr_auto] lg:items-end">
                                          @csrf
                                          @method('PATCH')
@@ -210,7 +224,7 @@
                              </tr>
                          @endif
                         <tr x-show="photoOpen" x-cloak>
-                            <td colspan="9" class="bg-slate-50 px-5 py-4">
+                             <td colspan="12" class="bg-slate-50 px-5 py-4">
                                 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
                                     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                                         @if($r->check_in_photo_url)
@@ -232,7 +246,7 @@
                 </tbody>
                     @empty
                 <tbody>
-                    <tr><td colspan="9" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
+                    <tr><td colspan="12" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
                 </tbody>
                     @endforelse
             </table>
@@ -320,6 +334,14 @@
                         <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
                             <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lembur</div>
                             <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $r->overtime_duration ?? '-' }}</div>
+                        </div>
+                        <div class="col-span-2 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
+                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Fase Lembur (jam)</div>
+                            <div class="mt-0.5 grid grid-cols-3 gap-1 font-mono text-slate-900">
+                                <div>F1: {{ number_format($r->overtime_phases[0]['hours'] ?? 0, 2, '.', '') }}</div>
+                                <div>F2: {{ number_format($r->overtime_phases[1]['hours'] ?? 0, 2, '.', '') }}</div>
+                                <div>F3: {{ number_format($r->overtime_phases[2]['hours'] ?? 0, 2, '.', '') }}</div>
+                            </div>
                         </div>
                     </div>
                     <div x-show="photoOpen" x-cloak class="overflow-hidden rounded-xl border border-slate-200 bg-white">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceRecord;
+use App\Models\AttendanceSetting;
 use App\Repositories\LocationRepository;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
@@ -35,6 +36,7 @@ class AttendanceController extends Controller
             'now' => now(),
             'activeAreas' => $activeAreas,
             'areas' => $activeAreas->map(fn ($a) => $this->locations->serialize($a))->values(),
+            'workSettings' => AttendanceSetting::current(),
         ]);
     }
 

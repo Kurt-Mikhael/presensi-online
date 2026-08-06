@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
 // Admin
 Route::middleware(['auth', 'role:admin,superadmin'])->prefix('admin')->group(function () {
     Route::get('/location', [AdminLocationController::class, 'index'])->name('admin.location');
+    Route::patch('/location/work-hours', [AdminLocationController::class, 'updateWorkHours'])->name('admin.location.work-hours');
     Route::get('/attendance', [AdminAttendanceController::class, 'index'])->name('admin.attendance.index');
     Route::get('/attendance/export', [AdminAttendanceController::class, 'export'])->name('admin.attendance.export');
 });

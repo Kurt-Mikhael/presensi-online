@@ -276,7 +276,7 @@ XML);
 </Relationships>
 XML);
 
-        $headings = ['Tanggal', 'No. Pegawai', 'Nama Pegawai', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Lembur', 'Status'];
+        $headings = ['Tanggal', 'No. Pegawai', 'Nama Pegawai', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Lembur', 'Fase 1 (jam)', 'Fase 2 (jam)', 'Fase 3 (jam)', 'Status'];
         $rows = [$headings];
 
         foreach ($records as $record) {
@@ -289,6 +289,9 @@ XML);
                 $record->check_out_at?->setTimezone(config('app.timezone'))?->format('H:i'),
                 $record->work_duration ?? '-',
                 $record->overtime_duration ?? '-',
+                $record->overtime_phases[0]['hours'] ?? 0,
+                $record->overtime_phases[1]['hours'] ?? 0,
+                $record->overtime_phases[2]['hours'] ?? 0,
                 $isWeekend && ($record->check_in_at || $record->check_out_at)
                     ? 'Lembur'
                     : ($isWeekend

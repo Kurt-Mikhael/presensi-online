@@ -17,6 +17,31 @@
         <p class="text-sm text-slate-500">Tentukan titik dan radius area kerja untuk absensi karyawan.</p>
     </header>
 
+    @if(session('status'))
+        <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('status') }}</div>
+    @endif
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div>
+            <h2 class="text-sm font-semibold text-slate-900">Pengaturan Jam Kerja</h2>
+            <p class="mt-1 text-xs text-slate-500">Digunakan untuk menentukan akhir jam kerja normal dan perhitungan lembur.</p>
+        </div>
+        <form method="post" action="{{ route('admin.location.work-hours') }}" class="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            @csrf
+            @method('PATCH')
+            <div>
+                <label for="work_start" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Jam mulai kerja</label>
+                <input id="work_start" type="time" name="work_start" value="{{ $workSettings->work_start }}" required class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
+            </div>
+            <div>
+                <label for="work_duration_hours" class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Durasi kerja normal (jam)</label>
+                <input id="work_duration_hours" type="number" name="work_duration_hours" min="0.5" max="24" step="0.5" value="{{ $workSettings->work_duration_hours }}" required class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20">
+            </div>
+            <button type="submit" class="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">Simpan Jam Kerja</button>
+        </form>
+        <div class="mt-3 text-xs text-slate-500">Jam kerja normal berakhir pukul <span class="font-mono font-semibold text-slate-700">{{ $workSettings->workEnd() }}</span>.</div>
+    </section>
+
     {{-- Pesan --}}
     <template x-if="message.text">
         <div x-transition.opacity

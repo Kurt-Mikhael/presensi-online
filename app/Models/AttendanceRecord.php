@@ -14,6 +14,7 @@ class AttendanceRecord extends Model
         'check_in_photo_url',
         'work_duration',
         'overtime_duration',
+        'overtime_phases',
     ];
 
     protected function casts(): array
@@ -67,22 +68,82 @@ class AttendanceRecord extends Model
             return null;
         }
 
-        $expectedEnd = $this->expectedWorkEnd();
-        $minutes = max(0, intdiv(
-            $this->check_out_at->getTimestamp() - $expectedEnd->getTimestamp(),
-            60
-        ));
+        $minutes = $this->overtimeMinutes();
 
         return $minutes > 0 ? $this->formatDuration($minutes) : null;
     }
 
+    public function getOvertimePhasesAttribute(): array
+    {
+        $overtimeMinutes = $this->overtimeMinutes();
+
+        if ($overtimeMinutes <= 0) {
+            return [];
+        }
+
+        if ($this->attendance_date?->isWeekend()) {
+            return $this->buildOvertimePhases($overtimeMinutes, [
+                ['label' => 'Fase 1', 'rate' => '2x', 'limit' => 8 * 60],
+                ['label' => 'Fase 2', 'rate' => '3x', 'limit' => 60],
+                ['label' => 'Fase 3', 'rate' => '4x', 'limit' => 3 * 60],
+            ]);
+        }
+
+        return $this->buildOvertimePhases($overtimeMinutes, [
+            ['label' => 'Fase 1', 'rate' => '1,5x', 'limit' => 60],
+            ['label' => 'Fase 2', 'rate' => '2x', 'limit' => PHP_INT_MAX],
+        ]);
+    }
+
     protected function expectedWorkEnd()
     {
-        $checkIn = $this->check_in_at->copy()->setTimezone(config('app.timezone'));
-        $workStart = $checkIn->copy()->setTimeFromTimeString(config('attendance.work_start', '09:00'));
-        $workHours = (int) config('attendance.work_duration_hours', 9);
+        $settings = AttendanceSetting::current();
+        $workStart = $this->check_in_at->copy()->setTimezone(config('app.timezone'))
+            ->setTimeFromTimeString($settings->work_start);
 
-        return ($checkIn->greaterThan($workStart) ? $checkIn : $workStart)->addHours($workHours);
+        return $workStart->addMinutes((int) round($settings->work_duration_hours * 60));
+    }
+
+    protected function overtimeMinutes(): int
+    {
+        if (! $this->check_in_at || ! $this->check_out_at) {
+            return 0;
+        }
+
+        if ($this->attendance_date?->isWeekend()) {
+            return max(0, intdiv(
+                $this->check_out_at->getTimestamp() - $this->check_in_at->getTimestamp(),
+                60
+            ));
+        }
+
+        return max(0, intdiv(
+            $this->check_out_at->getTimestamp() - $this->expectedWorkEnd()->getTimestamp(),
+            60
+        ));
+    }
+
+    protected function buildOvertimePhases(int $minutes, array $phases): array
+    {
+        $result = [];
+
+        foreach ($phases as $phase) {
+            if ($minutes <= 0) {
+                break;
+            }
+
+            $phaseMinutes = min($minutes, $phase['limit']);
+            $result[] = [
+                'label' => $phase['label'],
+                'rate' => $phase['rate'],
+                'minutes' => $phaseMinutes,
+                'hours' => round($phaseMinutes / 60, 2),
+                'duration' => $this->formatDuration($phaseMinutes),
+            ];
+            $minutes -= $phaseMinutes;
+        }
+
+        return $result;
     }
 
     protected function formatDuration(int $minutes): string
