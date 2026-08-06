@@ -12,7 +12,7 @@ Route::get('/', fn () => redirect()->route('login'));
 
 // Autentikasi
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Pemeriksaan koneksi (bisa diakses publik — sengaja ringan, tanpa DB).
