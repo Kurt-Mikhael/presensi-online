@@ -190,8 +190,9 @@ class AdminAttendanceController extends Controller
         $dateFrom = Carbon::parse($filters['date_from']);
         $dateTo = Carbon::parse($filters['date_to']);
         $users = User::query()
-            ->where('role', 'employee')
+            ->whereIn('role', ['employee', 'admin'])
             ->where('is_active', true)
+            ->where('attendance_required', true)
             ->when($filters['q'], function ($query, $term) {
                 $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
                 $query->where(function ($userQuery) use ($term) {
