@@ -65,6 +65,13 @@
                         Kelola Pengguna
                     </a>
                 @endif
+                @if($user->attendance_required)
+                    <a href="{{ route('attendance.index') }}" x-on:click="open=false"
+                       class="sidebar-nav-item flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium {{ request()->routeIs('attendance.*') ? 'sidebar-nav-active' : 'text-white/72 hover:bg-white/8 hover:text-white' }}">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12 12 3l9 9M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/></svg>
+                        Dashboard Presensi
+                    </a>
+                @endif
             @else
                 <a href="{{ route('attendance.index') }}" x-on:click="open=false"
                    class="sidebar-nav-item flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium {{ request()->routeIs('attendance.*') ? 'sidebar-nav-active' : 'text-white/72 hover:bg-white/8 hover:text-white' }}">

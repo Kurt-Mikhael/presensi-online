@@ -18,6 +18,7 @@ class UserSeeder extends Seeder
                 'role' => 'superadmin',
                 'password' => 'superadmin123',
                 'is_active' => true,
+                'attendance_required' => false,
             ],
             [
                 'employee_number' => 'ADM-001',
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
                 'role' => 'admin',
                 'password' => 'admin123',
                 'is_active' => true,
+                'attendance_required' => true,
             ],
             [
                 'employee_number' => 'EMP-0001',
@@ -36,6 +38,7 @@ class UserSeeder extends Seeder
                 'role' => 'employee',
                 'password' => 'budi123',
                 'is_active' => true,
+                'attendance_required' => true,
             ],
             [
                 'employee_number' => 'EMP-0002',
@@ -45,6 +48,7 @@ class UserSeeder extends Seeder
                 'role' => 'employee',
                 'password' => 'siti123',
                 'is_active' => true,
+                'attendance_required' => true,
             ],
         ];
 
