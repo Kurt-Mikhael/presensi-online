@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminUserController extends Controller
@@ -41,5 +42,23 @@ class AdminUserController extends Controller
         $user->update(['role' => $data['role']]);
 
         return back()->with('status', 'Role pengguna berhasil diperbarui.');
+    }
+
+    public function resetPassword(User $user): RedirectResponse
+    {
+        abort_if($user->isSuperAdmin(), 403, 'Password superadmin tidak dapat direset dari halaman ini.');
+
+        $temporaryPassword = Str::random(32);
+
+        $user->update([
+            'password' => $temporaryPassword,
+            'must_change_password' => true,
+            'password_changed_at' => now(),
+            'remember_token' => null,
+        ]);
+
+        return back()
+            ->with('status', 'Password sementara dibuat. Berikan kepada pengguna melalui kanal aman.')
+            ->with('temporary_password', $temporaryPassword);
     }
 }

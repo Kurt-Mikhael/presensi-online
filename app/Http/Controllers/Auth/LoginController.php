@@ -40,6 +40,7 @@ class LoginController extends Controller
         }
 
         $request->session()->regenerate();
+        $request->session()->put('password_version', Auth::user()->password_changed_at?->getTimestamp());
 
         Auth::user()->update(['last_login_at' => now()]);
 

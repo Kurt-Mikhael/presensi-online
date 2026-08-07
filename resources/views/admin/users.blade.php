@@ -12,6 +12,13 @@
     @if(session('status'))
         <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">{{ session('status') }}</div>
     @endif
+    @if(session('temporary_password'))
+        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div class="font-semibold">Password sementara, tampilkan hanya melalui kanal aman</div>
+            <code class="mt-2 block select-all rounded-lg bg-white px-3 py-2 font-mono text-sm">{{ session('temporary_password') }}</code>
+            <p class="mt-2 text-xs">Password ini hanya ditampilkan sekarang. Pengguna wajib menggantinya setelah login.</p>
+        </div>
+    @endif
 
     <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <form method="get" class="flex flex-col gap-2 sm:flex-row">
@@ -48,9 +55,15 @@
                                     <option value="employee" @selected($account->role === 'employee')>Karyawan</option>
                                     <option value="admin" @selected($account->role === 'admin')>Admin</option>
                                 </select>
-                                <button type="submit" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Simpan</button>
-                            </form>
-                        </td>
+                                 <button type="submit" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Simpan</button>
+                             </form>
+                             @if(! $account->isSuperAdmin())
+                                 <form method="post" action="{{ route('admin.users.reset-password', $account) }}" class="mt-2" onsubmit="return confirm('Buat password sementara untuk pengguna ini?')">
+                                     @csrf
+                                     <button type="submit" class="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50">Reset Password</button>
+                                 </form>
+                             @endif
+                         </td>
                     </tr>
                 @empty
                     <tr><td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada pengguna ditemukan.</td></tr>
