@@ -33,9 +33,6 @@ sleep 2
 echo "[entrypoint] menjalankan migrasi..."
 php artisan migrate --force
 
-echo "[entrypoint] menjalankan seeder (idempoten)..."
-php artisan db:seed --force
-
 echo "[entrypoint] membersihkan cache..."
 php artisan optimize:clear 2>/dev/null || true
 
