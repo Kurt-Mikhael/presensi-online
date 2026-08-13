@@ -17,7 +17,8 @@ RUN apk add --no-cache \
         icu-libs \
         postgresql-client \
     && apk add --no-cache --virtual .build-deps \
-        postgresql-dev \
+         postgresql-dev \
+         mariadb-connector-c-dev \
         libzip-dev \
         libpng-dev \
         freetype-dev \
@@ -29,7 +30,8 @@ RUN apk add --no-cache \
         $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
-        pdo_pgsql \
+         pdo_pgsql \
+         pdo_mysql \
         pgsql \
         gd \
         zip \

@@ -25,6 +25,22 @@ return [
             ],
         ],
 
+        'master' => [
+            'driver' => 'mysql',
+            'host' => env('MASTER_DB_HOST', '127.0.0.1'),
+            'port' => env('MASTER_DB_PORT', '3306'),
+            'database' => env('MASTER_DB_DATABASE', 'pegawai'),
+            'username' => env('MASTER_DB_USERNAME'),
+            'password' => env('MASTER_DB_PASSWORD'),
+            'unix_socket' => env('MASTER_DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'testing' => [
             'driver' => 'pgsql',
             'host' => env('DB_TEST_HOST', '127.0.0.1'),

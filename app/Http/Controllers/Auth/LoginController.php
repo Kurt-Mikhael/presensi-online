@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\MasterEmployee;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -25,24 +28,60 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $loginField = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $localUser = User::query()
+            ->where('auth_source', 'local')
+            ->where('is_active', true)
+            ->where(function ($query) use ($credentials) {
+                $query->where('username', $credentials['login'])
+                    ->orWhere('email', $credentials['login']);
+            })
+            ->first();
 
-        $attempt = [
-            $loginField => $credentials['login'],
-            'password' => $credentials['password'],
-            'is_active' => true,
-        ];
+        if ($localUser && Hash::check($credentials['password'], (string) $localUser->password)) {
+            Auth::login($localUser, $request->boolean('remember'));
+            $user = $localUser;
+        } else {
+            $masterEmployee = MasterEmployee::query()
+                ->where(function ($query) use ($credentials) {
+                    $query->where('nik', $credentials['login'])
+                        ->orWhere('username', $credentials['login']);
+                })
+                ->first();
 
-        if (! Auth::attempt($attempt, $request->boolean('remember'))) {
-            throw ValidationException::withMessages([
-                'login' => __('Login gagal. Periksa kembali kredensial Anda.'),
-            ]);
+            if (! $masterEmployee || ! Hash::check($credentials['password'], (string) $masterEmployee->password)) {
+                throw ValidationException::withMessages([
+                    'login' => __('Login gagal. Periksa kembali kredensial Anda.'),
+                ]);
+            }
+
+            $user = User::query()->firstOrCreate(
+                ['employee_number' => (string) $masterEmployee->nik],
+                [
+                    'name' => $masterEmployee->nama,
+                    'username' => $masterEmployee->username,
+                    'role' => 'employee',
+                    'is_active' => true,
+                    'attendance_required' => true,
+                    'password' => null,
+                    'auth_source' => 'master',
+                ],
+            );
+
+            $user->forceFill([
+                'name' => $masterEmployee->nama,
+                'username' => $masterEmployee->username,
+                'is_active' => true,
+                'auth_source' => 'master',
+                'last_login_at' => now(),
+            ])->save();
+
+            Auth::login($user, $request->boolean('remember'));
         }
 
         $request->session()->regenerate();
-        $request->session()->put('password_version', Auth::user()->password_changed_at?->getTimestamp());
-
-        Auth::user()->update(['last_login_at' => now()]);
+        if ($user->auth_source === 'local') {
+            $user->update(['last_login_at' => now()]);
+        }
 
         return redirect()->intended($this->redirectFor(Auth::user()));
     }
