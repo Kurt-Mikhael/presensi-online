@@ -224,9 +224,6 @@
             </div>
             <h2 class="mt-4 text-base font-semibold text-slate-900">Foto Absensi</h2>
 
-            <div class="mt-2 flex items-center gap-2 text-sm">
-            </div>
-
             <div class="relative mx-auto my-auto aspect-square w-40 overflow-hidden rounded-full border border-slate-200 bg-slate-50 shadow-sm">
                 <template x-if="photo.previewUrl">
                             <img :src="photo.previewUrl" alt="Foto absensi hari ini" class="h-full w-full object-cover">
@@ -297,11 +294,6 @@
                 <div x-show="status.accuracy !== null" class="mt-0.5 text-xs text-slate-500">
                     Akurasi GPS: <span class="font-mono tabular-nums" x-text="Math.round(status.accuracy)"></span> meter
                 </div>
-            </div>
-            <div class="text-xs text-slate-500">
-                <span x-show="!connection.checked">Memeriksa…</span>
-                <span x-show="connection.checked && connection.online" class="text-blue-600">● Online</span>
-                <span x-show="connection.checked && connection.online === false" class="text-red-600">● Offline</span>
             </div>
         </div>
     </section>
