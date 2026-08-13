@@ -20,9 +20,6 @@
             <div class="min-w-0">
                 <div class="flex items-center gap-2">
                     <div class="truncate text-sm font-semibold tracking-tight text-white">Absensi</div>
-                    <span class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">
-                        Live
-                    </span>
                 </div>
                 <div class="mt-0.5 text-[11px] text-white/60">Sistem Kehadiran</div>
             </div>
@@ -86,15 +83,6 @@
                 Ganti Password
             </a>
 
-            <div class="px-1 pt-2">
-                <div class="sidebar-footer-card rounded-2xl px-4 py-3 text-white/75">
-                    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/60">
-                        <span class="h-2 w-2 rounded-full bg-blue-400"></span>
-                        Sistem aktif
-                    </div>
-                </div>
-            </div>
-
             <form method="post" action="{{ route('logout') }}" class="sticky bottom-0 mt-auto border-t rounded-2xl border-white/10 bg-slate-950/45 px-3 py-3 backdrop-blur">
                 @csrf
                 <button type="submit" class=" flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium text-white/75 transition hover:bg-white/8 hover:text-white">
@@ -104,15 +92,6 @@
             </form>
         </nav>
 
-        @if($user->isAdmin())
-        <div class="absolute inset-x-4 bottom-20 hidden rounded-2xl border border-white/10 bg-white/6 px-4 py-3 backdrop-blur lg:block">
-            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Status Sistem</div>
-            <div class="mt-1 flex items-center gap-1.5 text-xs text-white/70">
-                <span class="h-1.5 w-1.5 rounded-full bg-blue-400"></span>
-                Server Operasional
-            </div>
-        </div>
-        @endif
     </aside>
 
     {{-- Backdrop for mobile drawer --}}
