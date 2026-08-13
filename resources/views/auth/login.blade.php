@@ -69,7 +69,7 @@
                 @csrf
 
                 <div>
-                    <label for="login" class="block text-sm font-medium text-slate-700">Username atau Email</label>
+                    <label for="login" class="block text-sm font-medium text-slate-700">Username atau NIK</label>
                     <div class="relative mt-1.5">
                         <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0"/></svg>

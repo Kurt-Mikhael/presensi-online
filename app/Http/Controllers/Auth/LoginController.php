@@ -31,10 +31,7 @@ class LoginController extends Controller
         $localUser = User::query()
             ->where('auth_source', 'local')
             ->where('is_active', true)
-            ->where(function ($query) use ($credentials) {
-                $query->where('username', $credentials['login'])
-                    ->orWhere('email', $credentials['login']);
-            })
+            ->where('username', $credentials['login'])
             ->first();
 
         if ($localUser && Hash::check($credentials['password'], (string) $localUser->password)) {
