@@ -62,7 +62,7 @@
                         Kelola Pengguna
                     </a>
                 @endif
-                @if($user->attendance_required)
+                @if(! $user->isSuperAdmin())
                     <a href="{{ route('attendance.index') }}" x-on:click="open=false"
                        class="sidebar-nav-item flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium {{ request()->routeIs('attendance.*') ? 'sidebar-nav-active' : 'text-white/72 hover:bg-white/8 hover:text-white' }}">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12 12 3l9 9M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/></svg>
@@ -76,12 +76,6 @@
                     Dashboard
                 </a>
             @endif
-
-            <a href="{{ route('password.edit') }}" x-on:click="open=false"
-               class="sidebar-nav-item flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-medium {{ request()->routeIs('password.*') ? 'sidebar-nav-active' : 'text-white/72 hover:bg-white/8 hover:text-white' }}">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 0h10.5A2.25 2.25 0 0 1 19.5 12.75v6.75a2.25 2.25 0 0 1-2.25 2.25h-10.5a2.25 2.25 0 0 1-2.25-2.25v-6.75A2.25 2.25 0 0 1 6.75 10.5Z"/></svg>
-                Ganti Password
-            </a>
 
             <form method="post" action="{{ route('logout') }}" class="sticky bottom-0 mt-auto border-t rounded-2xl border-white/10 bg-slate-950/45 px-3 py-3 backdrop-blur">
                 @csrf

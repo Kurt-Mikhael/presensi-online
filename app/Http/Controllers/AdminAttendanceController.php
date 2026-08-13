@@ -192,7 +192,6 @@ class AdminAttendanceController extends Controller
         $users = User::query()
             ->whereIn('role', ['employee', 'admin'])
             ->where('is_active', true)
-            ->where('attendance_required', true)
             ->when($filters['q'], function ($query, $term) {
                 $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $term).'%';
                 $query->where(function ($userQuery) use ($term) {

@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
-            'password.changed' => \App\Http\Middleware\EnsurePasswordIsChanged::class,
+            'can.attend' => \App\Http\Middleware\EnsureCanAttend::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
