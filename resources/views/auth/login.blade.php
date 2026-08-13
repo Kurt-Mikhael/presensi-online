@@ -83,7 +83,6 @@
                 <div>
                     <div class="flex items-center justify-between">
                         <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
-                        <span class="text-xs text-slate-400">Hubungi administrator jika lupa password</span>
                     </div>
                     <div class="relative mt-1.5">
                         <span class="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-slate-400">
