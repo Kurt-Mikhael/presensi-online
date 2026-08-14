@@ -9,6 +9,7 @@ use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
 
 class AttendanceController extends Controller
 {
@@ -92,7 +93,7 @@ class AttendanceController extends Controller
                 'attendance_type' => 'check_in',
                 'server_time' => $record->check_in_at?->toIso8601String(),
                 'accuracy' => $record->check_in_accuracy,
-                'area_name' => $this->attendance->lastMatchedArea?->name,
+                'area_name' => $record->matched_area_name,
                 'photo_url' => $record->check_in_photo_url,
                 'photo_taken_at' => $record->check_in_photo_taken_at?->toIso8601String(),
             ],
@@ -114,19 +115,25 @@ class AttendanceController extends Controller
                 'attendance_type' => 'check_out',
                 'server_time' => $record->check_out_at?->toIso8601String(),
                 'accuracy' => $record->check_out_accuracy,
-                'area_name' => $this->attendance->lastMatchedArea?->name,
+                'area_name' => $record->matched_area_name,
             ],
         ]);
     }
 
     protected function validateCheckIn(Request $request): array
     {
+        return $this->validateAttendance($request) + $request->validate([
+            'check_in_photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+        ]);
+    }
+
+    protected function validateAttendance(Request $request): array
+    {
         return $request->validate([
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'accuracy' => ['required', 'numeric', 'min:0'],
             'captured_at' => ['required', 'string'],
-            'check_in_photo' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
         ]);
     }
 
@@ -171,11 +178,14 @@ class AttendanceController extends Controller
 
     protected function validateLocation(Request $request): array
     {
-        return $request->validate([
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'accuracy' => ['required', 'numeric', 'min:0'],
-            'captured_at' => ['required', 'string'],
-        ]);
+        return $this->validateAttendance($request);
+    }
+
+    public function photo(Request $request, AttendanceRecord $record)
+    {
+        abort_unless($request->user()->isAdmin() || $record->user_id === $request->user()->id, 403);
+        abort_unless($record->check_in_photo_path, 404);
+
+        return Storage::disk('local')->response($record->check_in_photo_path);
     }
 }

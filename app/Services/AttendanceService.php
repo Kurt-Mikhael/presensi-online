@@ -6,6 +6,7 @@ use App\Exceptions\AttendanceException;
 use App\Models\AttendanceAttempt;
 use App\Models\AttendanceLocation;
 use App\Models\AttendanceRecord;
+use App\Models\AttendanceSetting;
 use App\Models\User;
 use App\Repositories\LocationRepository;
 use Carbon\Carbon;
@@ -23,11 +24,8 @@ class AttendanceService
     /**
      * Area yang cocok pada validasi terakhir (untuk ditampilkan ke pengguna).
      */
-    public ?AttendanceLocation $lastMatchedArea = null;
-
     public function __construct(
         protected LocationRepository $locations,
-        protected GeofenceService $geofence,
     ) {}
 
     /**
@@ -35,13 +33,21 @@ class AttendanceService
      */
     public function getTodayRecord(User $user): AttendanceRecord
     {
-        return AttendanceRecord::firstOrCreate(
-            [
+        $query = AttendanceRecord::where('user_id', $user->id)
+            ->where('attendance_date', today());
+
+        $record = $query->first();
+        if (! $record) {
+            AttendanceRecord::insertOrIgnore([
                 'user_id' => $user->id,
                 'attendance_date' => today(),
-            ],
-            ['attendance_date' => today()]
-        );
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $record = $query->firstOrFail();
+        }
+
+        return $record;
     }
 
     /**
@@ -52,32 +58,45 @@ class AttendanceService
      */
     public function checkIn(User $user, array $payload, ?UploadedFile $photo, Request $request): AttendanceRecord
     {
-        $this->validateLocationPayload($payload);
-
-        if (! $photo) {
-            throw new AttendanceException('PHOTO_REQUIRED', __('presensi.errors.PHOTO_REQUIRED'), 422);
-        }
-
-        $record = $this->getTodayRecord($user);
-
-        if ($record->check_in_at !== null) {
-            $this->logAttempt($user, 'check_in', $payload, false, 'DUPLICATE_CHECK_IN', $request);
-            throw new AttendanceException('DUPLICATE_CHECK_IN', __('presensi.errors.DUPLICATE_CHECK_IN'), 409);
-        }
-
-        $areas = $this->getLocationsOrFail();
-
-        try {
-            $this->lastMatchedArea = $this->validateAgainstAreas($areas, $payload);
-        } catch (AttendanceException $e) {
-            $this->logAttempt($user, 'check_in', $payload, false, $e->errorCode, $request);
-            throw $e;
-        }
-
         $photoPath = null;
+        $transactionCompleted = false;
 
         try {
-            return DB::transaction(function () use ($record, $payload, $user, $request, $photo, &$photoPath) {
+            $this->validateLocationPayload($payload);
+
+            if (! $photo) {
+                throw new AttendanceException('PHOTO_REQUIRED', __('presensi.errors.PHOTO_REQUIRED'), 422);
+            }
+
+            $record = DB::transaction(function () use ($payload, $user, $request, $photo, &$photoPath) {
+                $record = AttendanceRecord::where('user_id', $user->id)
+                    ->where('attendance_date', today())
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $record) {
+                    AttendanceRecord::insertOrIgnore([
+                        'user_id' => $user->id,
+                        'attendance_date' => today(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $record = AttendanceRecord::where('user_id', $user->id)
+                        ->where('attendance_date', today())
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                }
+
+                if ($record->check_in_at !== null) {
+                    throw new AttendanceException('DUPLICATE_CHECK_IN', __('presensi.errors.DUPLICATE_CHECK_IN'), 409);
+                }
+
+                try {
+                    $matchedArea = $this->validateAgainstAreas($this->getLocationsOrFail(), $payload);
+                } catch (AttendanceException $e) {
+                    throw $e;
+                }
+
                 $photoPath = $this->storeCheckInPhoto($user, $photo);
 
                 $record->update([
@@ -90,14 +109,25 @@ class AttendanceService
                     'check_in_photo_taken_at' => now(),
                 ]);
 
-                $this->logAttempt($user, 'check_in', $payload, true, null, $request);
-
-                return $record->fresh();
+                return $record->fresh()->setAttribute('matched_area_name', $matchedArea->name);
             });
-        } catch (\Throwable $e) {
-            if ($photoPath) {
-                Storage::disk('public')->delete($photoPath);
+            $transactionCompleted = true;
+            $this->logAttempt($user, 'check_in', $payload, true, null, $request);
+
+            return $record;
+        } catch (AttendanceException $e) {
+            if (! $transactionCompleted && $photoPath) {
+                Storage::disk('local')->delete($photoPath);
             }
+
+            $this->logAttempt($user, 'check_in', $payload, false, $e->errorCode, $request);
+            throw $e;
+        } catch (\Throwable $e) {
+            if (! $transactionCompleted && $photoPath) {
+                Storage::disk('local')->delete($photoPath);
+            }
+
+            $this->logAttempt($user, 'check_in', $payload, false, 'INTERNAL_ERROR', $request);
 
             throw $e;
         }
@@ -111,32 +141,34 @@ class AttendanceService
      */
     public function checkOut(User $user, array $payload, Request $request): AttendanceRecord
     {
-        $this->validateLocationPayload($payload);
-
-        $record = AttendanceRecord::where('user_id', $user->id)
-            ->where('attendance_date', today())
-            ->first();
-
-        if (! $record || $record->check_in_at === null) {
-            $this->logAttempt($user, 'check_out', $payload, false, 'CHECK_IN_REQUIRED', $request);
-            throw new AttendanceException('CHECK_IN_REQUIRED', __('presensi.errors.CHECK_IN_REQUIRED'), 409);
-        }
-
-        if ($record->check_out_at !== null) {
-            $this->logAttempt($user, 'check_out', $payload, false, 'DUPLICATE_CHECK_OUT', $request);
-            throw new AttendanceException('DUPLICATE_CHECK_OUT', __('presensi.errors.DUPLICATE_CHECK_OUT'), 409);
-        }
-
-        $areas = $this->getLocationsOrFail();
-
         try {
-            $this->lastMatchedArea = $this->validateAgainstAreas($areas, $payload);
-        } catch (AttendanceException $e) {
-            $this->logAttempt($user, 'check_out', $payload, false, $e->errorCode, $request);
-            throw $e;
-        }
+            $this->validateLocationPayload($payload);
 
-        return DB::transaction(function () use ($record, $payload, $user, $request) {
+            $record = DB::transaction(function () use ($payload, $user, $request) {
+                $record = AttendanceRecord::where('user_id', $user->id)
+                ->where('attendance_date', today())
+                ->lockForUpdate()
+                ->first();
+
+            if (! $record || $record->check_in_at === null) {
+                throw new AttendanceException('CHECK_IN_REQUIRED', __('presensi.errors.CHECK_IN_REQUIRED'), 409);
+            }
+
+            if ($record->check_out_at !== null) {
+                throw new AttendanceException('DUPLICATE_CHECK_OUT', __('presensi.errors.DUPLICATE_CHECK_OUT'), 409);
+            }
+
+            $currentTime = Carbon::now(config('app.timezone'));
+            $workStart = $currentTime->copy()->setTimeFromTimeString(AttendanceSetting::current()->work_start);
+            if ($currentTime->lt($workStart)) {
+                throw new AttendanceException('BEFORE_WORK_START', __('presensi.errors.BEFORE_WORK_START'), 409);
+            }
+
+            try {
+                $matchedArea = $this->validateAgainstAreas($this->getLocationsOrFail(), $payload);
+            } catch (AttendanceException $e) {
+                throw $e;
+            }
             $record->update([
                 'check_out_at' => now(),
                 'check_out_latitude' => (float) $payload['latitude'],
@@ -145,10 +177,18 @@ class AttendanceService
                 'check_out_is_inside_area' => true,
             ]);
 
+            return $record->fresh()->setAttribute('matched_area_name', $matchedArea->name);
+            });
             $this->logAttempt($user, 'check_out', $payload, true, null, $request);
 
-            return $record->fresh();
-        });
+            return $record;
+        } catch (AttendanceException $e) {
+            $this->logAttempt($user, 'check_out', $payload, false, $e->errorCode, $request);
+            throw $e;
+        } catch (\Throwable $e) {
+            $this->logAttempt($user, 'check_out', $payload, false, 'INTERNAL_ERROR', $request);
+            throw $e;
+        }
     }
 
     /**
@@ -172,7 +212,7 @@ class AttendanceService
         $insideSomewhere = false;
 
         foreach ($areas as $area) {
-            $result = $this->geofence->validatePoint($area, $lat, $lng);
+            $result = $this->locations->validatePoint($area, $lat, $lng);
 
             if (! $result['inside']) {
                 continue;
@@ -260,17 +300,20 @@ class AttendanceService
 
     protected function logAttempt(User $user, string $type, array $payload, bool $success, ?string $reason, Request $request): void
     {
-        AttendanceAttempt::create([
-            'user_id' => $user->id,
-            'attendance_type' => $type,
-            'latitude' => $payload['latitude'] ?? null,
-            'longitude' => $payload['longitude'] ?? null,
-            'accuracy' => $payload['accuracy'] ?? null,
-            'is_success' => $success,
-            'failure_reason' => $reason,
-            'ip_address' => $request->ip(),
-            'user_agent' => substr($request->userAgent() ?? '', 0, 500),
-        ]);
+        // Runs after attendance transaction has ended, so rollback cannot erase attempt log.
+        DB::transaction(function () use ($user, $type, $payload, $success, $reason, $request): void {
+            AttendanceAttempt::create([
+                'user_id' => $user->id,
+                'attendance_type' => $type,
+                'latitude' => $payload['latitude'] ?? null,
+                'longitude' => $payload['longitude'] ?? null,
+                'accuracy' => $payload['accuracy'] ?? null,
+                'is_success' => $success,
+                'failure_reason' => $reason,
+                'ip_address' => $request->ip(),
+                'user_agent' => substr($request->userAgent() ?? '', 0, 500),
+            ]);
+        });
     }
 
     protected function storeCheckInPhoto(User $user, UploadedFile $photo): string
@@ -282,6 +325,6 @@ class AttendanceService
             now()->format('His')
         );
 
-        return $photo->storePubliclyAs(dirname($path), basename($path), 'public');
+        return $photo->storeAs(dirname($path), basename($path), 'local');
     }
 }

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class AttendanceRecord extends Model
 {
@@ -44,7 +43,7 @@ class AttendanceRecord extends Model
     public function getCheckInPhotoUrlAttribute(): ?string
     {
         return $this->check_in_photo_path
-            ? Storage::disk('public')->url($this->check_in_photo_path)
+            ? route('attendance.photo', $this->id)
             : null;
     }
 
@@ -54,8 +53,11 @@ class AttendanceRecord extends Model
             return null;
         }
 
+        $settings = $this->workSettings();
+        $normalMinutes = (int) round($settings->work_duration_hours * 60);
+        $effectiveStart = $this->expectedWorkEnd()->subMinutes($normalMinutes);
         $minutes = max(0, intdiv(
-            $this->check_out_at->getTimestamp() - $this->check_in_at->getTimestamp(),
+            $this->check_out_at->getTimestamp() - $effectiveStart->getTimestamp(),
             60
         ));
 
@@ -77,36 +79,41 @@ class AttendanceRecord extends Model
     {
         $overtimeMinutes = $this->overtimeMinutes();
 
-        if ($overtimeMinutes <= 0) {
-            return [];
-        }
-
         if ($this->attendance_date?->isWeekend()) {
             return $this->buildOvertimePhases($overtimeMinutes, [
-                ['label' => 'Fase 1', 'rate' => '2x', 'limit' => 8 * 60],
-                ['label' => 'Fase 2', 'rate' => '3x', 'limit' => 60],
-                ['label' => 'Fase 3', 'rate' => '4x', 'limit' => 3 * 60],
+                ['label' => 'Fase 1', 'rate' => '1.5x', 'limit' => 0],
+                ['label' => 'Fase 2', 'rate' => '2x', 'limit' => 8 * 60],
+                ['label' => 'Fase 3', 'rate' => '3x', 'limit' => 60],
+                ['label' => 'Fase 4', 'rate' => '4x', 'limit' => 3 * 60],
             ]);
         }
 
         return $this->buildOvertimePhases($overtimeMinutes, [
-            ['label' => 'Fase 1', 'rate' => '1,5x', 'limit' => 60],
+            ['label' => 'Fase 1', 'rate' => '1.5x', 'limit' => 60],
             ['label' => 'Fase 2', 'rate' => '2x', 'limit' => PHP_INT_MAX],
+            ['label' => 'Fase 3', 'rate' => '3x', 'limit' => PHP_INT_MAX],
+            ['label' => 'Fase 4', 'rate' => '4x', 'limit' => PHP_INT_MAX],
         ]);
     }
 
     protected function expectedWorkEnd()
     {
-        $settings = AttendanceSetting::current();
+        $settings = $this->workSettings();
         $checkIn = $this->check_in_at->copy()->setTimezone(config('app.timezone'));
         $workStart = $checkIn->copy()
             ->setTimeFromTimeString($settings->work_start);
         $normalStart = $checkIn->greaterThan($workStart) ? $checkIn : $workStart;
 
-        return $normalStart->addMinutes((int) round($settings->work_duration_hours * 60));
+        return $normalStart
+            ->addMinutes((int) round($settings->work_duration_hours * 60));
     }
 
-    protected function overtimeMinutes(): int
+    protected function workSettings(): AttendanceSetting
+    {
+        return once(fn () => AttendanceSetting::current());
+    }
+
+    public function overtimeMinutes(): int
     {
         if (! $this->check_in_at || ! $this->check_out_at) {
             return 0;
@@ -130,11 +137,7 @@ class AttendanceRecord extends Model
         $result = [];
 
         foreach ($phases as $phase) {
-            if ($minutes <= 0) {
-                break;
-            }
-
-            $phaseMinutes = min($minutes, $phase['limit']);
+            $phaseMinutes = min(max(0, $minutes), $phase['limit']);
             $result[] = [
                 'label' => $phase['label'],
                 'rate' => $phase['rate'],

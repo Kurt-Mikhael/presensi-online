@@ -13,6 +13,7 @@ return [
         'DUPLICATE_CHECK_IN'   => 'You have already checked in today.',
         'DUPLICATE_CHECK_OUT'  => 'You have already checked out today.',
         'CHECK_IN_REQUIRED'    => 'Please check in before checking out.',
+        'BEFORE_WORK_START'    => 'Check-out is not available before the configured work start time.',
         'LOCATION_NOT_CONFIGURED' => 'Attendance area is not yet configured by admin.',
         'INVALID_LOCATION'     => 'Invalid location data.',
         'PHOTO_REQUIRED'       => 'A check-in photo is required.',

@@ -14,6 +14,8 @@ Route::get('/', fn () => redirect()->route('login'));
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/attendance/{record}/photo', [AttendanceController::class, 'photo'])
+    ->middleware('auth')->name('attendance.photo');
 
 // Pemeriksaan koneksi (bisa diakses publik — sengaja ringan, tanpa DB).
 Route::get('/api/connection-check', ConnectionCheckController::class);

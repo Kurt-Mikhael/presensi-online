@@ -15,28 +15,11 @@ use Illuminate\Support\Facades\DB;
 class LocationRepository
 {
     /**
-     * Ambil lokasi presensi aktif (versi awal: satu area saja).
-     */
-    public function getActiveLocation(): ?AttendanceLocation
-    {
-        $row = DB::table('attendance_locations')
-            ->where('is_active', true)
-            ->orderByDesc('updated_at')
-            ->first();
-
-        if (! $row) {
-            return null;
-        }
-
-        return $this->hydrateLocation($row);
-    }
-
-    /**
      * Ambil semua lokasi presensi yang aktif (multi-area).
      */
     public function getActiveLocations(): Collection
     {
-        return DB::table('attendance_locations')
+        return $this->queryWithGeoJson()
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
@@ -45,14 +28,14 @@ class LocationRepository
 
     public function find(int $id): ?AttendanceLocation
     {
-        $row = DB::table('attendance_locations')->where('id', $id)->first();
+        $row = $this->queryWithGeoJson()->where('id', $id)->first();
 
         return $row ? $this->hydrateLocation($row) : null;
     }
 
     public function all(): Collection
     {
-        return DB::table('attendance_locations')
+        return $this->queryWithGeoJson()
             ->orderByDesc('updated_at')
             ->get()
             ->map(fn ($r) => $this->hydrateLocation($r));
@@ -177,11 +160,6 @@ public function validatePoint(AttendanceLocation $loc, float $latitude, float $l
         return $this->find($id);
     }
 
-    public function deactivateAll(): void
-    {
-        DB::table('attendance_locations')->where('is_active', true)->update(['is_active' => false]);
-    }
-
     public function setActive(int $id, bool $active): void
     {
         DB::table('attendance_locations')->where('id', $id)->update([
@@ -208,18 +186,18 @@ public function validatePoint(AttendanceLocation $loc, float $latitude, float $l
         $loc->setAttribute('geometry', null);
         $loc->setAttribute('center_point', null);
 
-        $geo = DB::selectOne(
-            'SELECT
-                ST_AsGeoJSON(center_point) AS center_geojson,
-                ST_AsGeoJSON(geometry)     AS polygon_geojson
-            FROM attendance_locations WHERE id = ?',
-            [$row->id]
-        );
-
-        $loc->setAttribute('center_geojson', $geo->center_geojson ?? null);
-        $loc->setAttribute('polygon_geojson', $geo->polygon_geojson ?? null);
+        $loc->setAttribute('center_geojson', $row->center_geojson ?? null);
+        $loc->setAttribute('polygon_geojson', $row->polygon_geojson ?? null);
 
         return $loc;
+    }
+
+    protected function queryWithGeoJson()
+    {
+        return DB::table('attendance_locations')
+            ->select('*')
+            ->selectRaw('ST_AsGeoJSON(center_point) AS center_geojson')
+            ->selectRaw('ST_AsGeoJSON(geometry) AS polygon_geojson');
     }
 
     /**

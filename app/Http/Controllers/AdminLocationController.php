@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\AttendanceSetting;
 use App\Repositories\LocationRepository;
-use App\Services\GeofenceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +14,6 @@ class AdminLocationController extends Controller
 {
     public function __construct(
         protected LocationRepository $locations,
-        protected GeofenceService $geofence,
     ) {}
 
     /**

@@ -13,6 +13,7 @@ return [
         'DUPLICATE_CHECK_IN'   => 'Anda sudah melakukan absensi masuk hari ini.',
         'DUPLICATE_CHECK_OUT'  => 'Anda sudah melakukan absensi pulang hari ini.',
         'CHECK_IN_REQUIRED'    => 'Lakukan absensi masuk terlebih dahulu sebelum absensi pulang.',
+        'BEFORE_WORK_START'    => 'Absensi pulang belum dapat dilakukan sebelum jam mulai kerja.',
         'LOCATION_NOT_CONFIGURED' => 'Area absensi belum ditentukan admin.',
         'INVALID_LOCATION'     => 'Data lokasi tidak valid.',
         'PHOTO_REQUIRED'       => 'Foto absensi wajib diambil saat absensi masuk.',
