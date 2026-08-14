@@ -132,10 +132,10 @@
                         <th rowspan="2" class="px-5 py-3">Jam Pulang</th>
                         <th rowspan="2" class="px-5 py-3">Durasi Kerja</th>
                         <th rowspan="2" class="px-5 py-3">Lembur</th>
-                        <th colspan="2" class="px-3 py-2 text-center">Fase 1</th>
-                        <th colspan="2" class="px-3 py-2 text-center">Fase 2</th>
-                        <th colspan="2" class="px-3 py-2 text-center">Fase 3</th>
-                        <th colspan="2" class="px-3 py-2 text-center">Fase 4</th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 1 <span class="mt-0.5 block text-[10px] font-medium normal-case text-slate-400">x 1.5</span></th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 2 <span class="mt-0.5 block text-[10px] font-medium normal-case text-slate-400">x 2</span></th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 3 <span class="mt-0.5 block text-[10px] font-medium normal-case text-slate-400">x 3</span></th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 4 <span class="mt-0.5 block text-[10px] font-medium normal-case text-slate-400">x 4</span></th>
                         <th rowspan="2" class="px-5 py-3">Status</th>
                         <th rowspan="2" class="px-5 py-3 text-right">Aksi</th>
                     </tr>
@@ -411,8 +411,8 @@
                         <th rowspan="2" class="px-5 py-3 text-center">Hari</th>
                         <th rowspan="2" class="px-5 py-3">Durasi Kerja</th>
                         <th rowspan="2" class="px-5 py-3">Lembur</th>
-                        @foreach([1, 2, 3, 4] as $phase)
-                            <th colspan="2" class="px-3 py-2 text-center">Fase {{ $phase }}</th>
+                        @foreach([1 => '1.5', 2 => '2', 3 => '3', 4 => '4'] as $phase => $rate)
+                            <th colspan="2" class="px-3 py-2 text-center">Fase {{ $phase }} <span class="mt-0.5 block text-[10px] font-medium normal-case text-slate-400">x {{ $rate }}</span></th>
                         @endforeach
                     </tr>
                     <tr class="border-b border-slate-100 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">

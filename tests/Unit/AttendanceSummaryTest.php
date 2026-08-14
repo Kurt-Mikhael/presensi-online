@@ -52,12 +52,12 @@ class AttendanceSummaryTest extends TestCase
         $this->assertSame(3, $row['days']);
         $this->assertSame(840, $row['work_minutes']);
         $this->assertSame('14 jam 00 menit', $row['work_duration']);
-        $this->assertSame(840, $row['overtime_minutes']);
+        $this->assertSame(780, $row['overtime_minutes']);
         $this->assertSame([
             ['hours' => 0, 'minutes' => 0],
-            ['hours' => 10, 'minutes' => 0],
+            ['hours' => 9, 'minutes' => 0],
             ['hours' => 1, 'minutes' => 0],
-            ['hours' => 3, 'minutes' => 0],
+            ['hours' => 2, 'minutes' => 0],
         ], $row['phases']);
     }
 }

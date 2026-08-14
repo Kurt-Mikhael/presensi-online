@@ -71,10 +71,10 @@ class AttendanceRegressionTest extends TestCase
         }
     }
 
-    public function test_holiday_overtime_uses_four_phases_and_preserves_actual_duration(): void
+    public function test_holiday_overtime_uses_four_phases_after_one_hour_break(): void
     {
         $date = Carbon::parse('2026-08-08');
-        foreach ([8 * 60 => [0, 480, 0, 0], 12 * 60 => [0, 480, 60, 180]] as $minutes => $expected) {
+        foreach ([8 * 60 => [0, 420, 0, 0], 12 * 60 => [0, 480, 60, 120]] as $minutes => $expected) {
             $record = new AttendanceRecord([
                 'attendance_date' => $date,
                 'check_in_at' => $date->copy()->setTime(8, 0),
@@ -84,8 +84,35 @@ class AttendanceRegressionTest extends TestCase
             $phases = $record->overtime_phases;
             $this->assertCount(4, $phases);
             $this->assertSame($expected, array_column($phases, 'minutes'));
-            $this->assertSame($minutes, array_sum(array_column($phases, 'minutes')));
+            $this->assertSame($minutes - 60, array_sum(array_column($phases, 'minutes')));
         }
+    }
+
+    public function test_holiday_attendance_09_to_18_keeps_work_duration_and_counts_eight_overtime_hours(): void
+    {
+        $date = Carbon::parse('2026-08-08');
+        $record = new AttendanceRecord([
+            'attendance_date' => $date,
+            'check_in_at' => $date->copy()->setTime(9, 0),
+            'check_out_at' => $date->copy()->setTime(18, 0),
+        ]);
+
+        $this->assertSame('9 jam 00 menit', $record->work_duration);
+        $this->assertSame(8 * 60, $record->overtimeMinutes());
+        $this->assertSame([0, 480, 0, 0], array_column($record->overtime_phases, 'minutes'));
+    }
+
+    public function test_short_holiday_attendance_does_not_create_negative_overtime(): void
+    {
+        $date = Carbon::parse('2026-08-08');
+        $record = new AttendanceRecord([
+            'attendance_date' => $date,
+            'check_in_at' => $date->copy()->setTime(9, 0),
+            'check_out_at' => $date->copy()->setTime(9, 30),
+        ]);
+
+        $this->assertSame(0, $record->overtimeMinutes());
+        $this->assertSame([0, 0, 0, 0], array_column($record->overtime_phases, 'minutes'));
     }
 
     public function test_overtime_uses_standard_work_start_when_check_in_is_early(): void

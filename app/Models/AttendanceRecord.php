@@ -123,7 +123,7 @@ class AttendanceRecord extends Model
             return max(0, intdiv(
                 $this->check_out_at->getTimestamp() - $this->check_in_at->getTimestamp(),
                 60
-            ));
+            ) - 60);
         }
 
         return max(0, intdiv(
