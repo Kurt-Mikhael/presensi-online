@@ -62,12 +62,17 @@
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
                     Export Excel
                 </button>
+                <input type="hidden" name="view" value="{{ $filters['view'] }}">
+                @foreach(['detail' => 'Laporan Detail', 'summary' => 'Laporan Ringkasan'] as $mode => $label)
+                    <a href="{{ route('admin.attendance.index', array_merge(['date_from' => $filters['date_from'], 'date_to' => $filters['date_to'], 'q' => $filters['q']], ['view' => $mode])) }}" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-semibold transition sm:w-auto {{ $filters['view'] === $mode ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50' }}" @if($filters['view'] === $mode) aria-current="page" @endif>{{ $label }}</a>
+                @endforeach
                 <a href="{{ route('admin.attendance.index') }}" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto">Reset</a>
             </div>
         </form>
     </section>
 
     {{-- Stat cards --}}
+    @if($filters['view'] === 'detail')
     <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-4">
             <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -110,33 +115,49 @@
             </div>
         </div>
     </section>
+    @endif
 
+    @if($filters['view'] === 'detail')
     {{-- Tabel (desktop) --}}
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div class="hidden overflow-x-auto md:block">
             <table class="w-full min-w-[1300px] border-collapse text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                        <th class="px-5 py-3">No. Pegawai</th>
-                        <th class="px-5 py-3">Nama Pegawai</th>
-                        <th class="px-5 py-3">Tanggal</th>
-                        <th class="px-5 py-3">Jam Masuk</th>
-                        <th class="px-5 py-3">Jam Pulang</th>
-                        <th class="px-5 py-3">Durasi Kerja</th>
-                        <th class="px-5 py-3">Lembur</th>
-                        <th class="px-5 py-3">Fase 1 (jam)</th>
-                        <th class="px-5 py-3">Fase 2 (jam)</th>
-                        <th class="px-5 py-3">Fase 3 (jam)</th>
-                        <th class="px-5 py-3">Status</th>
-                        <th class="px-5 py-3 text-right">Aksi</th>
+                        <th rowspan="2" class="px-5 py-3">No. Pegawai</th>
+                        <th rowspan="2" class="px-5 py-3">Nama Pegawai</th>
+                        <th rowspan="2" class="px-5 py-3">Tanggal</th>
+                        <th rowspan="2" class="px-5 py-3">Jam Masuk</th>
+                        <th rowspan="2" class="px-5 py-3">Ketepatan Masuk</th>
+                        <th rowspan="2" class="px-5 py-3">Jam Pulang</th>
+                        <th rowspan="2" class="px-5 py-3">Durasi Kerja</th>
+                        <th rowspan="2" class="px-5 py-3">Lembur</th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 1</th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 2</th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 3</th>
+                        <th colspan="2" class="px-3 py-2 text-center">Fase 4</th>
+                        <th rowspan="2" class="px-5 py-3">Status</th>
+                        <th rowspan="2" class="px-5 py-3 text-right">Aksi</th>
+                    </tr>
+                    <tr class="border-b border-slate-100 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                         <th class="px-3 py-1.5">Jam</th>
+                         <th class="px-3 py-1.5">Menit</th>
+                         <th class="px-3 py-1.5">Jam</th>
+                         <th class="px-3 py-1.5">Menit</th>
+                        <th class="px-3 py-1.5">Jam</th>
+                        <th class="px-3 py-1.5">Menit</th>
+                        <th class="px-3 py-1.5">Jam</th>
+                        <th class="px-3 py-1.5">Menit</th>
                     </tr>
                 </thead>
                 @forelse($records as $r)
                         @php
                             $user = $r->user;
-                            $ci = $r->check_in_at?->setTimezone(config('app.timezone'));
-                            $co = $r->check_out_at?->setTimezone(config('app.timezone'));
-                            $isWeekend = $r->attendance_date?->isWeekend();
+                             $ci = $r->check_in_at?->setTimezone(config('app.timezone'));
+                             $co = $r->check_out_at?->setTimezone(config('app.timezone'));
+                             $isWeekend = $r->attendance_date?->isWeekend();
+                             $phases = $r->overtime_phases;
+                             $isLate = $ci && $ci->format('H:i') > $workSettings->work_start;
                         @endphp
                 <tbody x-data="{ photoOpen: false, editOpen: false }" class="divide-y divide-slate-100">
                         <tr class="align-top">
@@ -144,20 +165,25 @@
                             <td class="px-5 py-3.5 font-semibold text-slate-900">{{ $user?->name ?? '—' }}</td>
                             <td class="px-5 py-3.5 text-slate-700">{{ $r->attendance_date?->translatedFormat('l, j M Y') }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $ci?->format('H:i') ?? '—' }}</td>
+                            <td class="px-5 py-3.5">
+                                @if(! $ci)
+                                    <span class="text-slate-400">—</span>
+                                @elseif($isLate)
+                                    <span class="inline-flex rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">Terlambat</span>
+                                @else
+                                    <span class="inline-flex rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Tepat Waktu</span>
+                                @endif
+                            </td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $co?->format('H:i') ?? '—' }}</td>
                             <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $r->work_duration ?? '—' }}</td>
                             <td class="px-5 py-3.5 text-slate-700">
                                 <div class="font-mono tabular-nums">{{ $r->overtime_duration ?? '-' }}</div>
                             </td>
-                            <td class="px-5 py-3.5 text-slate-700">
-                                {{ number_format($r->overtime_phases[0]['hours'] ?? 0, 2, '.', '') }}
-                            </td>
-                            <td class="px-5 py-3.5 text-slate-700">
-                                {{ number_format($r->overtime_phases[1]['hours'] ?? 0, 2, '.', '') }}
-                            </td>
-                            <td class="px-5 py-3.5 text-slate-700">
-                                {{ number_format($r->overtime_phases[2]['hours'] ?? 0, 2, '.', '') }}
-                            </td>
+                            @foreach([0, 1, 2, 3] as $phaseIndex)
+                                @php $phaseMinutes = $phases[$phaseIndex]['minutes'] ?? 0; @endphp
+                                <td class="px-3 py-3.5 text-center font-mono tabular-nums text-slate-700">{{ intdiv($phaseMinutes, 60) }}</td>
+                                <td class="px-3 py-3.5 text-center font-mono tabular-nums text-slate-700">{{ $phaseMinutes % 60 }}</td>
+                            @endforeach
                             <td class="px-5 py-3.5">
                                 @if($isWeekend && ($r->check_in_at || $r->check_out_at))
                                     <span class="inline-flex items-center gap-1.5 rounded-md bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">Lembur</span>
@@ -184,21 +210,21 @@
                                  @if($r->check_in_photo_url)
                                     <button type="button" @click="photoOpen = !photoOpen" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700" :class="photoOpen ? 'border-brand-200 bg-brand-50 text-brand-700' : ''" aria-label="Lihat foto">
                                         <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                                        <span x-text="photoOpen ? 'Tutup Foto' : 'Lihat Foto'"></span>
+                                         <span x-text="photoOpen ? 'Tutup Foto' : 'Lihat Foto'">Lihat Foto</span>
                                     </button>
                                  @else
                                      <span class="text-xs text-slate-400">Belum ada foto</span>
                                  @endif
                                  @if(auth()->user()->isSuperAdmin())
                                      <button type="button" @click="editOpen = !editOpen" class="ml-2 inline-flex items-center gap-1.5 rounded-full border border-brand-200 px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-50">
-                                         <span x-text="editOpen ? 'Tutup Koreksi' : 'Koreksi Waktu'"></span>
+                                          <span x-text="editOpen ? 'Tutup Koreksi' : 'Koreksi Waktu'">Koreksi Waktu</span>
                                      </button>
                                  @endif
                              </td>
                          </tr>
                          @if(auth()->user()->isSuperAdmin())
                              <tr x-show="editOpen" x-cloak>
-                                 <td colspan="12" class="border-t border-brand-100 bg-brand-50/40 px-5 py-4">
+                                  <td colspan="18" class="border-t border-brand-100 bg-brand-50/40 px-5 py-4">
                                      <form method="post" action="{{ route('admin.attendance.times', [$user, $r->attendance_date?->format('Y-m-d')]) }}" class="grid gap-3 lg:grid-cols-[1fr_1fr_1.4fr_auto] lg:items-end">
                                          @csrf
                                          @method('PATCH')
@@ -224,11 +250,11 @@
                              </tr>
                          @endif
                         <tr x-show="photoOpen" x-cloak>
-                             <td colspan="12" class="bg-slate-50 px-5 py-4">
+                               <td colspan="18" class="bg-slate-50 px-5 py-4">
                                 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
                                     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                                         @if($r->check_in_photo_url)
-                                            <img src="{{ $r->check_in_photo_url }}" alt="Foto absensi {{ $user?->name ?? 'pegawai' }}" class="h-56 w-full object-cover">
+                                             <img x-bind:src="photoOpen ? '{{ $r->check_in_photo_url }}' : null" loading="lazy" alt="Foto absensi {{ $user?->name ?? 'pegawai' }}" class="h-56 w-full object-cover">
                                         @else
                                             <div class="grid h-56 place-items-center text-sm text-slate-400">Tidak ada foto tersimpan.</div>
                                         @endif
@@ -246,7 +272,7 @@
                 </tbody>
                     @empty
                 <tbody>
-                    <tr><td colspan="12" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
+                    <tr><td colspan="18" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada catatan absensi pada filter ini.</td></tr>
                 </tbody>
                     @endforelse
             </table>
@@ -257,8 +283,9 @@
             @forelse($records as $r)
                 @php
                     $user = $r->user;
-                    $ci = $r->check_in_at?->setTimezone(config('app.timezone'));
-                    $co = $r->check_out_at?->setTimezone(config('app.timezone'));
+                     $ci = $r->check_in_at?->setTimezone(config('app.timezone'));
+                     $co = $r->check_out_at?->setTimezone(config('app.timezone'));
+                     $isLate = $ci && $ci->format('H:i') > $workSettings->work_start;
                         @endphp
                 <div x-data="{ photoOpen: false }" class="space-y-2.5 px-4 py-3.5">
                     <div class="flex items-start justify-between gap-2">
@@ -291,11 +318,11 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-between gap-2">
-                        <div class="text-xs text-slate-400">Foto absensi masuk</div>
+                         <div class="text-xs text-slate-400">Foto absensi masuk</div>
                         @if($r->check_in_photo_url)
                             <button type="button" @click="photoOpen = !photoOpen" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700" :class="photoOpen ? 'border-brand-200 bg-brand-50 text-brand-700' : ''">
                                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
-                                <span x-text="photoOpen ? 'Tutup Foto' : 'Lihat Foto'"></span>
+                                 <span x-text="photoOpen ? 'Tutup Foto' : 'Lihat Foto'">Lihat Foto</span>
                             </button>
                          @else
                              <span class="text-xs text-slate-400">Belum ada foto</span>
@@ -328,6 +355,10 @@
                             <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $co?->format('H:i') ?? '—' }}</div>
                         </div>
                         <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
+                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Ketepatan Masuk</div>
+                            <div class="mt-0.5 font-semibold {{ ! $ci ? 'text-slate-400' : ($isLate ? 'text-red-700' : 'text-emerald-700') }}">{{ ! $ci ? '—' : ($isLate ? 'Terlambat' : 'Tepat Waktu') }}</div>
+                        </div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
                             <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Durasi Kerja</div>
                             <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $r->work_duration ?? '—' }}</div>
                         </div>
@@ -336,17 +367,21 @@
                             <div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $r->overtime_duration ?? '-' }}</div>
                         </div>
                         <div class="col-span-2 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
-                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Fase Lembur (jam)</div>
-                            <div class="mt-0.5 grid grid-cols-3 gap-1 font-mono text-slate-900">
-                                <div>F1: {{ number_format($r->overtime_phases[0]['hours'] ?? 0, 2, '.', '') }}</div>
-                                <div>F2: {{ number_format($r->overtime_phases[1]['hours'] ?? 0, 2, '.', '') }}</div>
-                                <div>F3: {{ number_format($r->overtime_phases[2]['hours'] ?? 0, 2, '.', '') }}</div>
+                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Fase Lembur</div>
+                            <div class="mt-1 grid grid-cols-4 gap-2 font-mono text-slate-900">
+                                @foreach([0, 1, 2, 3] as $phaseIndex)
+                                    @php $phaseMinutes = $r->overtime_phases[$phaseIndex]['minutes'] ?? 0; @endphp
+                                    <div>
+                                        <div class="text-[10px] font-sans font-semibold text-slate-400">F{{ $phaseIndex + 1 }}</div>
+                                        <div>{{ intdiv($phaseMinutes, 60) }}j {{ $phaseMinutes % 60 }}m</div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
                     <div x-show="photoOpen" x-cloak class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                         @if($r->check_in_photo_url)
-                            <img src="{{ $r->check_in_photo_url }}" alt="Foto absensi {{ $user?->name ?? 'pegawai' }}" class="h-52 w-full object-cover">
+                             <img x-bind:src="photoOpen ? '{{ $r->check_in_photo_url }}' : null" loading="lazy" alt="Foto absensi {{ $user?->name ?? 'pegawai' }}" class="h-52 w-full object-cover">
                             <div class="border-t border-slate-100 px-3 py-2 text-xs text-slate-500">{{ $r->check_in_photo_taken_at?->setTimezone(config('app.timezone'))?->format('d M Y, H:i') ?? 'Waktu foto tidak tersedia' }}</div>
                         @else
                             <div class="px-3 py-6 text-center text-sm text-slate-400">Tidak ada foto tersimpan.</div>
@@ -365,5 +400,81 @@
         </div>
         @endif
     </section>
+    @else
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div class="hidden overflow-x-auto md:block">
+            <table class="w-full min-w-[980px] border-collapse text-sm">
+                <thead>
+                    <tr class="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        <th rowspan="2" class="px-5 py-3">No. Pegawai</th>
+                        <th rowspan="2" class="px-5 py-3">Nama Pegawai</th>
+                        <th rowspan="2" class="px-5 py-3 text-center">Hari</th>
+                        <th rowspan="2" class="px-5 py-3">Durasi Kerja</th>
+                        <th rowspan="2" class="px-5 py-3">Lembur</th>
+                        @foreach([1, 2, 3, 4] as $phase)
+                            <th colspan="2" class="px-3 py-2 text-center">Fase {{ $phase }}</th>
+                        @endforeach
+                    </tr>
+                    <tr class="border-b border-slate-100 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        @foreach([1, 2, 3, 4] as $phase)
+                            <th class="px-3 py-1.5">Jam</th><th class="px-3 py-1.5">Menit</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($summaryRows as $row)
+                        <tr class="align-top">
+                            <td class="px-5 py-3.5 font-mono text-xs text-slate-500">{{ $row['user']?->employee_number ?? '—' }}</td>
+                            <td class="px-5 py-3.5 font-semibold text-slate-900">{{ $row['user']?->name ?? '—' }}</td>
+                            <td class="px-5 py-3.5 text-center font-mono tabular-nums text-slate-700">{{ $row['days'] }}</td>
+                            <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $row['work_duration'] }}</td>
+                            <td class="px-5 py-3.5 font-mono tabular-nums text-slate-700">{{ $row['overtime_duration'] }}</td>
+                            @foreach($row['phases'] as $phase)
+                                <td class="px-3 py-3.5 text-center font-mono tabular-nums text-slate-700">{{ $phase['hours'] }}</td>
+                                <td class="px-3 py-3.5 text-center font-mono tabular-nums text-slate-700">{{ $phase['minutes'] }}</td>
+                            @endforeach
+                        </tr>
+                    @empty
+                        <tr><td colspan="13" class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada pegawai pada filter ini.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="divide-y divide-slate-100 md:hidden">
+            @forelse($summaryRows as $row)
+                <article class="space-y-3 px-4 py-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="truncate text-sm font-semibold text-slate-900">{{ $row['user']?->name ?? '—' }}</div>
+                            <div class="font-mono text-xs text-slate-500">{{ $row['user']?->employee_number ?? '—' }}</div>
+                        </div>
+                        <div class="rounded-lg bg-slate-50 px-2.5 py-1 text-right">
+                            <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Hari</div>
+                            <div class="font-mono text-sm font-semibold tabular-nums text-slate-900">{{ $row['days'] }}</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2"><div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Durasi kerja</div><div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $row['work_duration'] }}</div></div>
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2"><div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Lembur</div><div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $row['overtime_duration'] }}</div></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                        @foreach($row['phases'] as $index => $phase)
+                            <div class="rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-2"><div class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Fase {{ $index + 1 }}</div><div class="mt-0.5 font-mono font-semibold tabular-nums text-slate-900">{{ $phase['hours'] }}j {{ $phase['minutes'] }}m</div></div>
+                        @endforeach
+                    </div>
+                </article>
+            @empty
+                <div class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada pegawai pada filter ini.</div>
+            @endforelse
+        </div>
+     </section>
+     @if ($summaryRows->hasPages())
+     <div class="flex flex-col gap-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+         <div>Menampilkan {{ $summaryRows->firstItem() ?? 0 }}–{{ $summaryRows->lastItem() ?? 0 }} dari {{ $summaryRows->total() }}</div>
+         <div>{{ $summaryRows->links('pagination::tailwind') }}</div>
+     </div>
+     @endif
+     @endif
 </div>
 @endsection

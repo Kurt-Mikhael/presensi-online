@@ -32,6 +32,9 @@ function pointInPolygon(lat, lng, ring) {
     for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
         const xi = ring[i].lat, yi = ring[i].lng;
         const xj = ring[j].lat, yj = ring[j].lng;
+        const cross = (lat - xi) * (yj - yi) - (lng - yi) * (xj - xi);
+        if (Math.abs(cross) < 1e-12 && lat >= Math.min(xi, xj) && lat <= Math.max(xi, xj)
+            && lng >= Math.min(yi, yj) && lng <= Math.max(yi, yj)) return true;
         const intersect = ((yi > lng) !== (yj > lng))
             && (lat < ((xj - xi) * (lng - yi)) / (yj - yi) + xi);
         if (intersect) inside = !inside;
@@ -215,6 +218,7 @@ window.presensiPage = function presensiPage(initial) {
             navigator.geolocation.watchPosition(update, () => {}, { enableHighAccuracy: true, maximumAge: 10000 });
         },
 
+        // Preview only; backend PostGIS remains final geofence authority.
         evaluatePosition(lat, lng, accuracy) {
             let best = null;
 

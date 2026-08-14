@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\AttendanceRecord;
+use App\Models\AttendanceSetting;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use App\Exports\AttendanceXlsxExporter;
 
 class AdminAttendanceController extends Controller
 {
@@ -31,12 +36,20 @@ class AdminAttendanceController extends Controller
             'pending' => (clone $base)->whereNull('check_in_at')->count(),
         ];
 
-        $records = $this->paginateCollection($dailyRecords, $request);
+        $records = $filters['view'] === 'detail'
+            ? $this->paginateCollection($dailyRecords, $request)
+            : collect();
+
+        $summaryRows = $filters['view'] === 'summary'
+            ? $this->paginateCollection($this->summaryRecords($dailyRecords), $request)
+            : collect();
 
         return view('admin.attendance', [
             'records' => $records,
+            'summaryRows' => $summaryRows,
             'filters' => $filters,
             'stats' => $stats,
+            'workSettings' => AttendanceSetting::current(),
         ]);
     }
 
@@ -46,9 +59,15 @@ class AdminAttendanceController extends Controller
     public function export(Request $request)
     {
         $filters = $this->filters($request);
-        $records = $this->dailyRecords($filters);
+        $dailyRecords = $this->dailyRecords($filters);
+        $records = $filters['view'] === 'summary'
+            ? $this->summaryRecords($dailyRecords)
+            : $dailyRecords;
         $filename = 'laporan-presensi-'.now()->format('Y-m-d-His').'.xlsx';
-        $path = $this->createXlsx($records);
+        $exporter = app(AttendanceXlsxExporter::class);
+        $path = $filters['view'] === 'summary'
+            ? $exporter->createSummary($records)
+            : $exporter->create($records);
 
         return response()->download($path, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -81,40 +100,65 @@ class AdminAttendanceController extends Controller
             return back()->withErrors(['check_out_at' => 'Jam pulang harus setelah jam masuk.']);
         }
 
-        $record = AttendanceRecord::firstOrNew([
-            'user_id' => $user->id,
-            'attendance_date' => $attendanceDate->toDateString(),
-        ]);
-        $updates = [
-            'corrected_by' => $request->user()->id,
-            'corrected_at' => now(),
-            'correction_note' => $data['correction_note'] ?? null,
-        ];
+        $photoPathToDelete = null;
+        DB::transaction(function () use ($data, $user, $attendanceDate, $request, &$photoPathToDelete): void {
+            $record = AttendanceRecord::where('user_id', $user->id)
+                ->where('attendance_date', $attendanceDate->toDateString())
+                ->lockForUpdate()
+                ->first();
+            if (! $record) {
+                AttendanceRecord::insertOrIgnore([
+                    'user_id' => $user->id,
+                    'attendance_date' => $attendanceDate->toDateString(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $record = AttendanceRecord::where('user_id', $user->id)
+                    ->where('attendance_date', $attendanceDate->toDateString())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+            }
+            $updates = [
+                'corrected_by' => $request->user()->id,
+                'corrected_at' => now(),
+                'correction_note' => $data['correction_note'] ?? null,
+            ];
 
-        if ($data['action'] === 'cancel_check_in') {
-            $updates += [
-                'check_in_at' => null,
-                'check_in_latitude' => null,
-                'check_in_longitude' => null,
-                'check_in_accuracy' => null,
-                'check_in_is_inside_area' => null,
-                'check_in_photo_path' => null,
-                'check_in_photo_taken_at' => null,
-            ];
-        } elseif ($data['action'] === 'cancel_check_out') {
-            $updates += [
-                'check_out_at' => null,
-                'check_out_latitude' => null,
-                'check_out_longitude' => null,
-                'check_out_accuracy' => null,
-                'check_out_is_inside_area' => null,
-            ];
-        } else {
-            $updates['check_in_at'] = $data['check_in_at'] ?? null;
-            $updates['check_out_at'] = $data['check_out_at'] ?? null;
+            if ($data['action'] === 'cancel_check_in') {
+                $photoPathToDelete = $record->check_in_photo_path;
+                $updates += [
+                    'check_in_at' => null,
+                    'check_in_latitude' => null,
+                    'check_in_longitude' => null,
+                    'check_in_accuracy' => null,
+                    'check_in_is_inside_area' => null,
+                    'check_in_photo_path' => null,
+                    'check_in_photo_taken_at' => null,
+                    'check_out_at' => null,
+                    'check_out_latitude' => null,
+                    'check_out_longitude' => null,
+                    'check_out_accuracy' => null,
+                    'check_out_is_inside_area' => null,
+                ];
+            } elseif ($data['action'] === 'cancel_check_out') {
+                $updates += [
+                    'check_out_at' => null,
+                    'check_out_latitude' => null,
+                    'check_out_longitude' => null,
+                    'check_out_accuracy' => null,
+                    'check_out_is_inside_area' => null,
+                ];
+            } else {
+                $updates['check_in_at'] = $data['check_in_at'] ?? null;
+                $updates['check_out_at'] = $data['check_out_at'] ?? null;
+            }
+
+            $record->fill($updates)->save();
+        });
+
+        if ($photoPathToDelete) {
+            Storage::disk('local')->delete($photoPathToDelete);
         }
-
-        $record->fill($updates)->save();
 
         return back()->with('status', 'Waktu absensi berhasil dikoreksi.');
     }
@@ -182,6 +226,9 @@ class AdminAttendanceController extends Controller
             'date_from' => $dateFrom,
             'date_to' => $dateTo,
             'q' => $request->input('q'),
+            'view' => in_array($request->input('view'), ['detail', 'summary'], true)
+                ? $request->input('view')
+                : 'detail',
         ];
     }
 
@@ -203,15 +250,14 @@ class AdminAttendanceController extends Controller
             ->get();
 
         $attendance = AttendanceRecord::query()
-            ->with('user:id,employee_number,name,role')
             ->whereDate('attendance_date', '>=', $dateFrom)
             ->whereDate('attendance_date', '<=', $dateTo)
             ->get()
             ->keyBy(fn ($record) => $record->user_id.'|'.$record->attendance_date->toDateString());
 
         $records = collect();
-        for ($date = $dateFrom->copy(); $date->lte($dateTo); $date->addDay()) {
-            foreach ($users as $user) {
+        foreach ($users as $user) {
+            for ($date = $dateTo->copy(); $date->gte($dateFrom); $date->subDay()) {
                 $dateKey = $date->toDateString();
                 $record = $attendance->get($user->id.'|'.$dateKey) ?? new AttendanceRecord([
                     'attendance_date' => $date->copy(),
@@ -222,7 +268,53 @@ class AdminAttendanceController extends Controller
             }
         }
 
-        return $records->sortByDesc('attendance_date')->values();
+        return $records;
+    }
+
+    protected function summaryRecords(Collection $dailyRecords): Collection
+    {
+        return $dailyRecords
+            ->groupBy('user_id')
+            ->map(function (Collection $records): array {
+                $phaseMinutes = [0, 0, 0, 0];
+                $workMinutes = 0;
+                $overtimeMinutes = 0;
+
+                foreach ($records as $record) {
+                    if ($record->check_in_at && $record->check_out_at) {
+                        $workMinutes += max(0, intdiv(
+                            $record->check_out_at->getTimestamp() - $record->check_in_at->getTimestamp(),
+                            60,
+                        ));
+                        $overtimeMinutes += $record->overtimeMinutes();
+
+                        foreach ($record->overtime_phases as $index => $phase) {
+                            if ($index < 4) {
+                                $phaseMinutes[$index] += (int) ($phase['minutes'] ?? 0);
+                            }
+                        }
+                    }
+                }
+
+                return [
+                    'user' => $records->first()->user,
+                    'days' => $records->count(),
+                    'work_minutes' => $workMinutes,
+                    'work_duration' => $this->formatMinutes($workMinutes),
+                    'overtime_minutes' => $overtimeMinutes,
+                    'overtime_duration' => $this->formatMinutes($overtimeMinutes),
+                    'phases' => array_map(fn (int $minutes): array => [
+                        'hours' => intdiv($minutes, 60),
+                        'minutes' => $minutes % 60,
+                    ], $phaseMinutes),
+                ];
+            })
+            ->values();
+    }
+
+    protected function formatMinutes(int $minutes): string
+    {
+        return sprintf('%d jam %02d menit', intdiv($minutes, 60), $minutes % 60);
     }
 
     protected function paginateCollection($items, Request $request): LengthAwarePaginator
@@ -241,93 +333,4 @@ class AdminAttendanceController extends Controller
         );
     }
 
-    protected function createXlsx($records): string
-    {
-        $path = tempnam(sys_get_temp_dir(), 'presensi-export-');
-        $zip = new \ZipArchive;
-        $zip->open($path, \ZipArchive::OVERWRITE);
-
-        $zip->addFromString('[Content_Types].xml', <<<'XML'
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-<Default Extension="xml" ContentType="application/xml"/>
-<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-</Types>
-XML);
-        $zip->addFromString('_rels/.rels', <<<'XML'
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>
-XML);
-        $zip->addFromString('xl/workbook.xml', <<<'XML'
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets><sheet name="Laporan Presensi" sheetId="1" r:id="rId1"/></sheets>
-</workbook>
-XML);
-        $zip->addFromString('xl/_rels/workbook.xml.rels', <<<'XML'
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-</Relationships>
-XML);
-
-        $headings = ['Tanggal', 'No. Pegawai', 'Nama Pegawai', 'Jam Masuk', 'Jam Pulang', 'Durasi Kerja', 'Lembur', 'Fase 1 (jam)', 'Fase 2 (jam)', 'Fase 3 (jam)', 'Status'];
-        $rows = [$headings];
-
-        foreach ($records as $record) {
-            $isWeekend = $record->attendance_date?->isWeekend();
-            $rows[] = [
-                $record->attendance_date?->format('Y-m-d'),
-                $record->user?->employee_number,
-                $record->user?->name,
-                $record->check_in_at?->setTimezone(config('app.timezone'))?->format('H:i'),
-                $record->check_out_at?->setTimezone(config('app.timezone'))?->format('H:i'),
-                $record->work_duration ?? '-',
-                $record->overtime_duration ?? '-',
-                $record->overtime_phases[0]['hours'] ?? 0,
-                $record->overtime_phases[1]['hours'] ?? 0,
-                $record->overtime_phases[2]['hours'] ?? 0,
-                $isWeekend && ($record->check_in_at || $record->check_out_at)
-                    ? 'Lembur'
-                    : ($isWeekend
-                        ? 'Hari Libur'
-                        : ($record->check_in_at && $record->check_out_at
-                            ? 'Lengkap'
-                            : ($record->check_in_at ? 'Sudah Masuk' : 'Belum Presensi'))),
-            ];
-        }
-
-        $sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-        $sheet .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
-        foreach ($rows as $rowNumber => $row) {
-            $sheet .= '<row r="'.($rowNumber + 1).'">';
-            foreach ($row as $columnNumber => $value) {
-                $cell = $this->excelColumn($columnNumber + 1).($rowNumber + 1);
-                $value = htmlspecialchars((string) ($value ?? '-'), ENT_XML1 | ENT_QUOTES, 'UTF-8');
-                $sheet .= '<c r="'.$cell.'" t="inlineStr"><is><t>'.$value.'</t></is></c>';
-            }
-            $sheet .= '</row>';
-        }
-        $sheet .= '</sheetData></worksheet>';
-        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
-        $zip->close();
-
-        return $path;
-    }
-
-    protected function excelColumn(int $number): string
-    {
-        $column = '';
-        while ($number > 0) {
-            $remainder = ($number - 1) % 26;
-            $column = chr(65 + $remainder).$column;
-            $number = intdiv($number - 1, 26);
-        }
-
-        return $column;
-    }
 }

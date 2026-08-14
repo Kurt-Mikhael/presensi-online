@@ -28,7 +28,7 @@
     "src": "node_modules/leaflet/dist/images/marker-icon.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-C71uhlKg.css",
+    "file": "assets/app-BOiL-q5Y.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -51,7 +51,7 @@
     "isEntry": true
   },
   "resources/js/attendance.js": {
-    "file": "assets/attendance-Bzp3g4UJ.js",
+    "file": "assets/attendance-BLIMhTpN.js",
     "name": "attendance",
     "src": "resources/js/attendance.js",
     "isEntry": true,
